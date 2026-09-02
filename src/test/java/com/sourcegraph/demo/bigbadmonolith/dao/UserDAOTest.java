@@ -108,8 +108,9 @@ class UserDAOTest {
     @Test
     void saveWrapsDuplicateEmailInRuntimeException() {
         dao.save(new User("dup@example.com", "First"));
+        User duplicate = new User("dup@example.com", "Second");
 
-        assertThatThrownBy(() -> dao.save(new User("dup@example.com", "Second")))
+        assertThatThrownBy(() -> dao.save(duplicate))
             .isInstanceOf(RuntimeException.class);
     }
 }

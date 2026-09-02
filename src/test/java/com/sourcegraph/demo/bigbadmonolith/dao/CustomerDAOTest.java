@@ -103,7 +103,9 @@ class CustomerDAOTest {
 
     @Test
     void saveRejectsBlankName() {
-        assertThatThrownBy(() -> dao.save(new Customer("  ", "e@test", "addr")))
+        Customer blankName = new Customer("  ", "e@test", "addr");
+
+        assertThatThrownBy(() -> dao.save(blankName))
             .isInstanceOf(IllegalArgumentException.class);
     }
 }

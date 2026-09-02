@@ -174,7 +174,7 @@ class BillingServiceTest {
     }
 
     @Test
-    void validateBillableHourReturnsEmptyForValidWeekdayEntry() throws SQLException {
+    void validateBillableHourReturnsEmptyForValidWeekdayEntry() {
         BillableHour hour = new BillableHour(
             customerId, userId, categoryId, new BigDecimal("5.00"), "note", new LocalDate(2024, 1, 15));
 
