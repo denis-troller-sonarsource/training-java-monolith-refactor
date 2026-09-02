@@ -28,6 +28,6 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-./gradlew libertyDev
+./gradlew :app:libertyDev
 
 echo "Server stopped."

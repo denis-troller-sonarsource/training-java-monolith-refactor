@@ -22,6 +22,6 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-call gradlew.bat libertyDev
+call gradlew.bat :app:libertyDev
 
 echo Server stopped.

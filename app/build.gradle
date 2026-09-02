@@ -1,0 +1,44 @@
+plugins {
+    id 'war'
+    id 'io.openliberty.tools.gradle.Liberty' version '3.8.2'
+}
+
+// Preserve the historical WAR name so the Liberty server.xml application location
+// (big-bad-monolith-1.0-SNAPSHOT.war) and the /big-bad-monolith context root keep working.
+war {
+    archiveBaseName = 'big-bad-monolith'
+}
+
+dependencies {
+    // Domain modules. Empty in Phase 1; code is carved into them in later phases.
+    implementation project(':common')
+    implementation project(':users')
+    implementation project(':customers')
+    implementation project(':catalog')
+    implementation project(':timesheet')
+    implementation project(':billing')
+
+    compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
+    compileOnly('jakarta.servlet:jakarta.servlet-api:6.1.0')
+
+    // Derby database
+    implementation('org.apache.derby:derby:10.17.1.0')
+    implementation('org.apache.derby:derbytools:10.17.1.0')
+
+    // Connection pooling
+    implementation('org.apache.commons:commons-dbcp2:2.11.0')
+    implementation('org.apache.commons:commons-pool2:2.12.0')
+
+    implementation('joda-time:joda-time:2.12.5')
+
+    // Derby is needed at test runtime for the in-memory characterization DB.
+    testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
+}
+
+// Liberty configuration
+liberty {
+    server {
+        name = 'defaultServer'
+        configDirectory = file('src/main/liberty/config')
+    }
+}
