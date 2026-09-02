@@ -1,6 +1,7 @@
 package com.sourcegraph.demo.bigbadmonolith.dao;
 
 import com.sourcegraph.demo.bigbadmonolith.entity.User;
+import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

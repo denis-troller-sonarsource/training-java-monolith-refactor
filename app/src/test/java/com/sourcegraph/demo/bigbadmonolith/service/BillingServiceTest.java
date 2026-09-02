@@ -3,7 +3,7 @@ package com.sourcegraph.demo.bigbadmonolith.service;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.LibertyConnectionManager;
+import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 import com.sourcegraph.demo.bigbadmonolith.dao.UserDAO;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;

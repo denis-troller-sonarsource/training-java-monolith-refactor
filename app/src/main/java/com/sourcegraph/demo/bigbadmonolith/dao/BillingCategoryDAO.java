@@ -1,6 +1,7 @@
 package com.sourcegraph.demo.bigbadmonolith.dao;
 
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 
 import java.math.BigDecimal;
 import java.sql.*;

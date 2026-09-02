@@ -1,6 +1,6 @@
 package com.sourcegraph.demo.bigbadmonolith.testsupport;
 
-import com.sourcegraph.demo.bigbadmonolith.dao.LibertyConnectionManager;
+import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -2,14 +2,60 @@ plugins {
     id 'java-library'
 }
 
+// A dedicated integration-test source set exercises the container-only code paths
+// (JNDI DataSource, Liberty schema init, Derby shutdown) that plain unit tests cannot
+// reach. It runs in its own forked JVM so a custom JNDI factory can be installed
+// before LibertyConnectionManager's static initializer resolves the DataSource.
+sourceSets {
+    integrationTest {
+        java.srcDir 'src/integrationTest/java'
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
 // :common holds shared DB connection infrastructure and time utilities.
 // It has no dependencies on any domain module. Code is carved in from :app in Phase 2.
 dependencies {
     // Derby is used by the embedded ConnectionManager (moved here in Phase 2).
+    // derbytools provides the EmbeddedDriver autoloading needed at runtime.
     api('org.apache.derby:derby:10.17.1.0')
+    api('org.apache.derby:derbytools:10.17.1.0')
     api('joda-time:joda-time:2.12.5')
 
     compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
 
     testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
+    testRuntimeOnly('org.apache.derby:derbytools:10.17.1.0')
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests in a forked JVM with a custom JNDI InitialContextFactory.'
+    group = 'verification'
+
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    // Install the in-memory JNDI factory before LibertyConnectionManager loads, so its
+    // static initializer resolves a real (Derby) DataSource and the JNDI branch executes.
+    systemProperty 'java.naming.factory.initial',
+        'com.sourcegraph.demo.bigbadmonolith.common.it.TestInitialContextFactory'
+
+    shouldRunAfter test
+}
+
+// CI runs `gradle build`, which invokes `check`; wire integration tests into it.
+check.dependsOn integrationTest
+
+// Sonar reads a single JaCoCo XML (bound to the `test` task). Aggregate execution data
+// from BOTH `test` and `integrationTest` so container-only coverage is visible there.
+jacocoTestReport {
+    dependsOn test, integrationTest
+    executionData.from = fileTree(layout.buildDirectory).include('jacoco/*.exec')
 }

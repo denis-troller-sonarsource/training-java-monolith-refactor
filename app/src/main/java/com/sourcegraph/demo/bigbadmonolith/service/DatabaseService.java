@@ -1,6 +1,6 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
-import com.sourcegraph.demo.bigbadmonolith.dao.ConnectionManager;
+import com.sourcegraph.demo.bigbadmonolith.common.ConnectionManager;
 import com.sourcegraph.demo.bigbadmonolith.dao.UserDAO;
 import com.sourcegraph.demo.bigbadmonolith.entity.User;
 import java.util.List;

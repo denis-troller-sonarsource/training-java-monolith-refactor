@@ -1,6 +1,7 @@
 package com.sourcegraph.demo.bigbadmonolith.dao;
 
 import com.sourcegraph.demo.bigbadmonolith.entity.Customer;
+import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 import org.joda.time.DateTime;
 
 import java.sql.*;

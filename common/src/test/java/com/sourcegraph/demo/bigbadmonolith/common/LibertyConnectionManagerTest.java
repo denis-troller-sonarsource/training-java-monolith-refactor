@@ -1,4 +1,4 @@
-package com.sourcegraph.demo.bigbadmonolith.dao;
+package com.sourcegraph.demo.bigbadmonolith.common;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Unit tests for {@link LibertyConnectionManager}'s connection-resolution logic. The JNDI
@@ -63,5 +64,13 @@ class LibertyConnectionManagerTest {
         try (Connection conn = LibertyConnectionManager.getConnection()) {
             assertThat(conn).isNotSameAs(stub);
         }
+    }
+
+    @Test
+    void initializeDatabaseSchemaIsNoOpWithoutLibertyDataSource() {
+        // Outside a container the DataSource is null, so schema init must be a safe no-op
+        // (the embedded ConnectionManager owns the schema instead).
+        assertThatCode(LibertyConnectionManager::initializeDatabaseSchema)
+            .doesNotThrowAnyException();
     }
 }
