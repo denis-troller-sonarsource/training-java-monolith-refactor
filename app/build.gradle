@@ -9,6 +9,22 @@ war {
     archiveBaseName = 'big-bad-monolith'
 }
 
+// A dedicated integration-test source set drives the ServletContextListener in its own forked
+// JVM. contextDestroyed() shuts down the embedded Derby engine JVM-wide, so it must not share
+// the JVM with the unit tests (which need Derby to stay up).
+sourceSets {
+    integrationTest {
+        java.srcDir 'src/integrationTest/java'
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
 dependencies {
     // Domain modules. Empty in Phase 1; code is carved into them in later phases.
     implementation project(':common')
@@ -33,6 +49,31 @@ dependencies {
 
     // Derby is needed at test runtime for the in-memory characterization DB.
     testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
+
+    // Servlet API is compileOnly for production (the container provides it); tests that
+    // drive the ServletContextListener need it on the test classpath.
+    testImplementation('jakarta.servlet:jakarta.servlet-api:6.1.0')
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests (servlet lifecycle) in a forked JVM.'
+    group = 'verification'
+
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    shouldRunAfter test
+}
+
+// CI runs `gradle build`, which invokes `check`; wire integration tests into it.
+check.dependsOn integrationTest
+
+// Sonar reads a single JaCoCo XML (bound to the `test` task). Aggregate execution data
+// from BOTH `test` and `integrationTest` so servlet-lifecycle coverage is visible there.
+jacocoTestReport {
+    dependsOn test, integrationTest
+    executionData.from = fileTree(layout.buildDirectory).include('jacoco/*.exec')
 }
 
 // Liberty configuration

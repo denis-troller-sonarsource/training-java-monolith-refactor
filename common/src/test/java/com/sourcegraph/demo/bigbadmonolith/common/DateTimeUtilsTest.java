@@ -104,4 +104,11 @@ class DateTimeUtilsTest {
         // MM/dd/yyyy; the exact day depends on the default time zone, so assert the shape.
         assertThat(formatted).matches("\\d{2}/\\d{2}/\\d{4}");
     }
+
+    @Test
+    void getCurrentDateAndLogReturnsToday() {
+        LocalDate now = DateTimeUtils.getCurrentDateAndLog();
+
+        assertThat(now).isEqualTo(LocalDate.now());
+    }
 }
