@@ -6,27 +6,57 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LibertyConnectionManager {
+    private static final Logger LOGGER = Logger.getLogger(LibertyConnectionManager.class.getName());
     private static final String JNDI_NAME = "jdbc/DefaultDataSource";
     private static DataSource dataSource;
-    
+
+    /**
+     * Optional override for supplying connections. When set (e.g. by tests), it takes
+     * precedence over the JNDI DataSource and the embedded {@link ConnectionManager}.
+     * This is the seam that lets the DAOs run against an in-memory database without Liberty.
+     */
+    private static ConnectionSupplier connectionOverride;
+
+    /** Supplies JDBC connections; separate type so it can declare {@link SQLException}. */
+    @FunctionalInterface
+    public interface ConnectionSupplier {
+        Connection getConnection() throws SQLException;
+    }
+
+    private LibertyConnectionManager() {
+        // Utility class: no instances.
+    }
+
     static {
         try {
             initializeDataSource();
         } catch (Exception e) {
             // Fall back to embedded ConnectionManager for development
-            System.err.println("Failed to initialize Liberty DataSource, falling back to embedded Derby: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Failed to initialize Liberty DataSource, falling back to embedded Derby", e);
         }
     }
-    
+
     private static void initializeDataSource() throws NamingException {
         InitialContext ctx = new InitialContext();
         dataSource = (DataSource) ctx.lookup(JNDI_NAME);
-        System.out.println("Successfully initialized Liberty DataSource from JNDI: " + JNDI_NAME);
+        LOGGER.log(Level.INFO, "Successfully initialized Liberty DataSource from JNDI: {0}", JNDI_NAME);
     }
-    
+
+    /**
+     * Installs a connection override. Intended for tests. Pass {@code null} to clear it.
+     */
+    public static void setConnectionOverride(ConnectionSupplier override) {
+        connectionOverride = override;
+    }
+
     public static Connection getConnection() throws SQLException {
+        if (connectionOverride != null) {
+            return connectionOverride.getConnection();
+        }
         if (dataSource != null) {
             return dataSource.getConnection();
         } else {
@@ -104,11 +134,11 @@ public class LibertyConnectionManager {
             createTableIfNotExists(stmt, createBillingCategoriesTableSQL);
             createTableIfNotExists(stmt, createBillableHoursTableSQL);
             
-            System.out.println("Database schema initialized successfully via Liberty DataSource");
-            
+            LOGGER.info("Database schema initialized successfully via Liberty DataSource");
+
         } catch (SQLException e) {
-            System.err.println("Failed to initialize database schema via Liberty DataSource: " + e.getMessage());
-            throw new RuntimeException("Failed to initialize database", e);
+            LOGGER.log(Level.SEVERE, "Failed to initialize database schema via Liberty DataSource", e);
+            throw new IllegalStateException("Failed to initialize database", e);
         }
     }
     

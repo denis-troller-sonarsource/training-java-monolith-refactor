@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'war'
+    id 'jacoco'
     id 'io.openliberty.tools.gradle.Liberty' version '3.8.2'
     id "org.sonarqube" version "7.3.1.8318"
 }
@@ -46,10 +47,31 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
+    // Fluent assertions for the characterization test suite.
+    // 3.27.7 is the first release fixing CVE-2026-24400 (XXE, CWE-611).
+    testImplementation('org.assertj:assertj-core:3.27.7')
+
+    // Derby is needed at test runtime for the in-memory characterization DB.
+    testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
 }
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+    }
+}
+
+sonar {
+  properties {
+    property "sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml"
+  }
 }
 
 // Liberty configuration
