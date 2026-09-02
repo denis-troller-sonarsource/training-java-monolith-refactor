@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'java-test-fixtures'
 }
 
 // A dedicated integration-test source set exercises the container-only code paths
@@ -32,6 +33,11 @@ dependencies {
 
     testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
     testRuntimeOnly('org.apache.derby:derbytools:10.17.1.0')
+
+    // Test fixtures (InMemoryDatabase/Schema) are shared with the domain modules so their
+    // repository tests can run against an isolated in-memory Derby via the connection override.
+    testFixturesApi('org.apache.derby:derby:10.17.1.0')
+    testFixturesApi('org.apache.derby:derbytools:10.17.1.0')
 }
 
 tasks.register('integrationTest', Test) {

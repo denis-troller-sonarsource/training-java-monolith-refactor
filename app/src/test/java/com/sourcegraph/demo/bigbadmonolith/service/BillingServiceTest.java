@@ -4,11 +4,11 @@ import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
 import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
-import com.sourcegraph.demo.bigbadmonolith.dao.UserDAO;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.entity.Customer;
-import com.sourcegraph.demo.bigbadmonolith.entity.User;
+import com.sourcegraph.demo.bigbadmonolith.users.api.User;
+import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import org.joda.time.LocalDate;
 import org.junit.jupiter.api.AfterEach;
@@ -51,7 +51,7 @@ class BillingServiceTest {
         billableHourDAO = new BillableHourDAO();
 
         Customer customer = new CustomerDAO().save(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
-        User user = new UserDAO().save(new User("user@example.com", "Sample User"));
+        User user = Users.service().createUser(new User("user@example.com", "Sample User"));
         BillingCategory category = categoryDAO
             .save(new BillingCategory("Development", "Dev work", new BigDecimal("100.00")));
 

@@ -1,10 +1,11 @@
 <%@ page import="java.util.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.users.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     CustomerDAO customerDAO = new CustomerDAO();
-    UserDAO userDAO = new UserDAO();
+    UserService userService = Users.service();
     BillableHourDAO billableHourDAO = new BillableHourDAO();
     BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
     
@@ -16,7 +17,7 @@
         List<Customer> customers = customerDAO.findAll();
         totalCustomers = customers.size();
         
-        List<User> users = userDAO.findAll();
+        List<User> users = userService.listUsers();
         totalUsers = users.size();
         
         List<BillableHour> billableHours = billableHourDAO.findAll();

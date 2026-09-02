@@ -3,8 +3,9 @@ package com.sourcegraph.demo.bigbadmonolith.service;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.UserDAO;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
+import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
+import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ class DataInitializationServiceTest {
     private InMemoryDatabase db;
     private DataInitializationService service;
 
-    private UserDAO userDAO;
+    private UserService userService;
     private CustomerDAO customerDAO;
     private BillingCategoryDAO categoryDAO;
     private BillableHourDAO billableHourDAO;
@@ -31,7 +32,7 @@ class DataInitializationServiceTest {
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
         service = new DataInitializationService();
-        userDAO = new UserDAO();
+        userService = Users.service();
         customerDAO = new CustomerDAO();
         categoryDAO = new BillingCategoryDAO();
         billableHourDAO = new BillableHourDAO();
@@ -46,7 +47,7 @@ class DataInitializationServiceTest {
     void initializeSampleDataSeedsExpectedCounts() throws SQLException {
         service.initializeSampleData();
 
-        assertThat(userDAO.findAll()).hasSize(2);
+        assertThat(userService.listUsers()).hasSize(2);
         assertThat(customerDAO.findAll()).hasSize(3);
         assertThat(categoryDAO.findAll()).hasSize(3);
         assertThat(billableHourDAO.findAll()).hasSize(6);
@@ -57,7 +58,7 @@ class DataInitializationServiceTest {
         service.initializeSampleData();
         service.initializeSampleData();
 
-        assertThat(userDAO.findAll()).hasSize(2);
+        assertThat(userService.listUsers()).hasSize(2);
         assertThat(customerDAO.findAll()).hasSize(3);
         assertThat(categoryDAO.findAll()).hasSize(3);
         assertThat(billableHourDAO.findAll()).hasSize(6);

@@ -1,9 +1,10 @@
 <%@ page import="java.util.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.users.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    UserDAO userDAO = new UserDAO();
+    UserService userService = Users.service();
     String action = request.getParameter("action");
     String message = "";
     
@@ -13,7 +14,7 @@
         
         try {
             User user = new User(name, email);
-            userDAO.save(user);
+            userService.createUser(user);
             message = "User added successfully!";
         } catch (Exception e) {
             message = "Error adding user: " + e.getMessage();
@@ -95,7 +96,7 @@
                     BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
                     
                     try {
-                        List<User> users = userDAO.findAll();
+                        List<User> users = userService.listUsers();
                         List<BillableHour> allBillableHours = billableHourDAO.findAll();
                         List<BillingCategory> categories = categoryDAO.findAll();
                         

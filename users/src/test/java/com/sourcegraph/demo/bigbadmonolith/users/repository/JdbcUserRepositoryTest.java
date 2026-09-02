@@ -1,7 +1,8 @@
-package com.sourcegraph.demo.bigbadmonolith.dao;
+package com.sourcegraph.demo.bigbadmonolith.users.repository;
 
-import com.sourcegraph.demo.bigbadmonolith.entity.User;
+import com.sourcegraph.demo.bigbadmonolith.common.DataAccessException;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
+import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,19 +14,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Characterization tests for {@link UserDAO} against a real in-memory Derby database.
- * These lock in the DAO's current CRUD behavior, including its practice of wrapping
- * {@link SQLException} in a {@link RuntimeException}, before the modular refactoring begins.
+ * Characterization tests for {@link JdbcUserRepository} against a real in-memory Derby database.
+ * These lock in the repository's CRUD behavior, including wrapping {@link SQLException} in a
+ * {@link DataAccessException}.
  */
-class UserDAOTest {
+class JdbcUserRepositoryTest {
 
     private InMemoryDatabase db;
-    private UserDAO dao;
+    private JdbcUserRepository dao;
 
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        dao = new UserDAO();
+        dao = new JdbcUserRepository();
     }
 
     @AfterEach
@@ -106,11 +107,11 @@ class UserDAOTest {
     }
 
     @Test
-    void saveWrapsDuplicateEmailInRuntimeException() {
+    void saveWrapsDuplicateEmailInDataAccessException() {
         dao.save(new User("dup@example.com", "First"));
         User duplicate = new User("dup@example.com", "Second");
 
         assertThatThrownBy(() -> dao.save(duplicate))
-            .isInstanceOf(RuntimeException.class);
+            .isInstanceOf(DataAccessException.class);
     }
 }
