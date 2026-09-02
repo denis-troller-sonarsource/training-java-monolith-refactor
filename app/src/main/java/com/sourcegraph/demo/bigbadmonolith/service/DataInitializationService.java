@@ -2,10 +2,11 @@ package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
-import com.sourcegraph.demo.bigbadmonolith.entity.Customer;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
@@ -18,7 +19,7 @@ import java.util.List;
 public class DataInitializationService {
 
     private UserService userService = Users.service();
-    private CustomerDAO customerDAO = new CustomerDAO();
+    private CustomerService customerService = Customers.service();
     private BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
     private BillableHourDAO billableHourDAO = new BillableHourDAO();
 
@@ -33,9 +34,9 @@ public class DataInitializationService {
         User user2 = userService.createUser(new User("jane.smith@example.com", "Jane Smith"));
         
         // Create sample customers
-        Customer customer1 = customerDAO.save(new Customer("Acme Corp", "billing@acme.com", "123 Business St"));
-        Customer customer2 = customerDAO.save(new Customer("TechStart Inc", "finance@techstart.com", "456 Innovation Ave"));
-        Customer customer3 = customerDAO.save(new Customer("MegaCorp Ltd", "accounts@megacorp.com", "789 Enterprise Blvd"));
+        Customer customer1 = customerService.createCustomer(new Customer("Acme Corp", "billing@acme.com", "123 Business St"));
+        Customer customer2 = customerService.createCustomer(new Customer("TechStart Inc", "finance@techstart.com", "456 Innovation Ave"));
+        Customer customer3 = customerService.createCustomer(new Customer("MegaCorp Ltd", "accounts@megacorp.com", "789 Enterprise Blvd"));
         
         // Create billing categories
         BillingCategory devCategory = categoryDAO.save(new BillingCategory("Development", "Software development work", new BigDecimal("150.00")));

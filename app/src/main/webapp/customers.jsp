@@ -1,9 +1,8 @@
 <%@ page import="java.util.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.customers.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    CustomerDAO customerDAO = new CustomerDAO();
+    CustomerService customerService = Customers.service();
     String action = request.getParameter("action");
     String message = "";
     
@@ -14,7 +13,7 @@
         
         try {
             Customer customer = new Customer(name, email, address);
-            customerDAO.save(customer);
+            customerService.createCustomer(customer);
             message = "Customer added successfully!";
         } catch (Exception e) {
             message = "Error adding customer: " + e.getMessage();
@@ -25,7 +24,7 @@
         String id = request.getParameter("id");
         try {
             Long customerId = Long.parseLong(id);
-            customerDAO.delete(customerId);
+            customerService.deleteCustomer(customerId);
             message = "Customer deleted!";
         } catch (NumberFormatException e) {
             message = "Error: Invalid customer ID format";
@@ -113,7 +112,7 @@
             <tbody>
                 <%
                     try {
-                        List<Customer> customers = customerDAO.findAll();
+                        List<Customer> customers = customerService.listCustomers();
                         customers.sort((c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt()));
                         
                         for (Customer customer : customers) {

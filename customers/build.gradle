@@ -7,4 +7,9 @@ dependencies {
     api project(':common')
 
     compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
+
+    // Shared in-memory DB test harness (InMemoryDatabase/Schema) from :common.
+    testImplementation(testFixtures(project(':common')))
+    testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
+    testRuntimeOnly('org.apache.derby:derbytools:10.17.1.0')
 }
