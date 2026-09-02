@@ -85,4 +85,23 @@ class DateTimeUtilsTest {
         assertThatThrownBy(() -> DateTimeUtils.formatDateTimeVerbose(null))
             .isInstanceOf(RuntimeException.class);
     }
+
+    @Test
+    void convertToJavaUtilDatePreservesMillis() {
+        DateTime dateTime = new DateTime(2024, 3, 5, 9, 7, 0);
+
+        java.util.Date converted = DateTimeUtils.convertToJavaUtilDate(dateTime);
+
+        assertThat(converted.getTime()).isEqualTo(dateTime.getMillis());
+    }
+
+    @Test
+    void formatForDisplayUsesLegacySlashPattern() {
+        DateTime dateTime = new DateTime(2024, 3, 5, 9, 7, 0);
+
+        String formatted = DateTimeUtils.formatForDisplay(dateTime);
+
+        // MM/dd/yyyy; the exact day depends on the default time zone, so assert the shape.
+        assertThat(formatted).matches("\\d{2}/\\d{2}/\\d{4}");
+    }
 }

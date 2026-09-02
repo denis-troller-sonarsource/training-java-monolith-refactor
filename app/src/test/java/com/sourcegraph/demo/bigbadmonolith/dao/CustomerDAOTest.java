@@ -108,4 +108,42 @@ class CustomerDAOTest {
         assertThatThrownBy(() -> dao.save(blankName))
             .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void saveRejectsBlankEmail() {
+        Customer blankEmail = new Customer("Acme", "  ", "addr");
+
+        assertThatThrownBy(() -> dao.save(blankEmail))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void updateRejectsNullCustomer() {
+        assertThatThrownBy(() -> dao.update(null))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void updateRejectsNullId() {
+        Customer noId = new Customer("Acme", "e@test", "addr");
+
+        assertThatThrownBy(() -> dao.update(noId))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void updateRejectsBlankName() {
+        Customer badName = new Customer(1L, "  ", "e@test", "addr", new DateTime());
+
+        assertThatThrownBy(() -> dao.update(badName))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void updateRejectsBlankEmail() {
+        Customer badEmail = new Customer(1L, "Acme", "  ", "addr", new DateTime());
+
+        assertThatThrownBy(() -> dao.update(badEmail))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
 }
