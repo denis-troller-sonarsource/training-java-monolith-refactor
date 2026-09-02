@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+// Billable-hours (timesheet) bounded context. Depends on the users, customers and catalog
+// contexts (their api packages). Code is carved in from :app in Phase 3.
+dependencies {
+    api project(':common')
+    implementation project(':users')
+    implementation project(':customers')
+    implementation project(':catalog')
+
+    compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
+}

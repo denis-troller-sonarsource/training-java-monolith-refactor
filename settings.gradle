@@ -1,1 +1,9 @@
 rootProject.name = "big-bad-monolith"
+
+include 'common'
+include 'users'
+include 'customers'
+include 'catalog'
+include 'timesheet'
+include 'billing'
+include 'app'

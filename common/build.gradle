@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
+// :common holds shared DB connection infrastructure and time utilities.
+// It has no dependencies on any domain module. Code is carved in from :app in Phase 2.
+dependencies {
+    // Derby is used by the embedded ConnectionManager (moved here in Phase 2).
+    api('org.apache.derby:derby:10.17.1.0')
+    api('joda-time:joda-time:2.12.5')
+
+    compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
+
+    testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
+}

@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
+// Billing + reporting. Composes the four bounded contexts via their api packages.
+// Code is carved in from :app in Phase 4.
+dependencies {
+    api project(':common')
+    implementation project(':users')
+    implementation project(':customers')
+    implementation project(':catalog')
+    implementation project(':timesheet')
+
+    compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
+}

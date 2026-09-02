@@ -1,0 +1,10 @@
+plugins {
+    id 'java-library'
+}
+
+// User bounded context. Code is carved in from :app in Phase 3.
+dependencies {
+    api project(':common')
+
+    compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
+}
