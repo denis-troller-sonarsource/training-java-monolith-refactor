@@ -2,6 +2,14 @@ plugins {
     id 'java'
     id 'war'
     id 'io.openliberty.tools.gradle.Liberty' version '3.8.2'
+    id "org.sonarqube" version "7.3.1.8318"
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "denis-troller-sonarsource_training-java-monolith-refactor"
+    property "sonar.organization", "denis-troller-sonar"
+  }
 }
 
 group 'com.sourcegraph.demo'
