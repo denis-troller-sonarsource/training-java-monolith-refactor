@@ -1,4 +1,4 @@
-package com.sourcegraph.demo.bigbadmonolith.dao;
+package com.sourcegraph.demo.bigbadmonolith.common;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

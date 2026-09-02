@@ -1,4 +1,4 @@
-package com.sourcegraph.demo.bigbadmonolith.util;
+package com.sourcegraph.demo.bigbadmonolith.common;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;

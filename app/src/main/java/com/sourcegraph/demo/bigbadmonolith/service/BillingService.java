@@ -6,7 +6,7 @@ import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.entity.Customer;
-import com.sourcegraph.demo.bigbadmonolith.util.DateTimeUtils;
+import com.sourcegraph.demo.bigbadmonolith.common.DateTimeUtils;
 import org.joda.time.LocalDate;
 
 import java.math.BigDecimal;
