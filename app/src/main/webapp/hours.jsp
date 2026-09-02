@@ -4,11 +4,12 @@
 <%@ page import="org.joda.time.LocalDate" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.users.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     BillableHourDAO billableHourDAO = new BillableHourDAO();
     CustomerDAO customerDAO = new CustomerDAO();
-    UserDAO userDAO = new UserDAO();
+    UserService userService = Users.service();
     BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
     
     String action = request.getParameter("action");
@@ -142,7 +143,7 @@
                     <option value="">Select User</option>
                     <%
                         try {
-                            List<User> users = userDAO.findAll();
+                            List<User> users = userService.listUsers();
                             for (User user : users) {
                                 out.println("<option value='" + user.getId() + "'>" + 
                                           user.getName() + "</option>");
@@ -209,7 +210,7 @@
                     try {
                         List<BillableHour> recentHours = billableHourDAO.findAll();
                         List<Customer> customers = customerDAO.findAll();
-                        List<User> users = userDAO.findAll();
+                        List<User> users = userService.listUsers();
                         List<BillingCategory> categories = categoryDAO.findAll();
                         
                         Map<Long, Customer> customerMap = new HashMap<>();

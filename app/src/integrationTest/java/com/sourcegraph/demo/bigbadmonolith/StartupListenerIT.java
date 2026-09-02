@@ -1,6 +1,6 @@
 package com.sourcegraph.demo.bigbadmonolith;
 
-import com.sourcegraph.demo.bigbadmonolith.dao.UserDAO;
+import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import jakarta.servlet.ServletContextEvent;
 import org.junit.jupiter.api.MethodOrderer;
@@ -30,7 +30,7 @@ class StartupListenerIT {
             // A null event is fine: the embedded path does not read from it.
             listener.contextInitialized((ServletContextEvent) null);
 
-            assertThat(new UserDAO().findAll()).isNotEmpty();
+            assertThat(Users.service().listUsers()).isNotEmpty();
         }
     }
 

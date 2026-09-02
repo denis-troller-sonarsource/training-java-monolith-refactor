@@ -1,4 +1,4 @@
-package com.sourcegraph.demo.bigbadmonolith.entity;
+package com.sourcegraph.demo.bigbadmonolith.users.api;
 
 public class User {
     private Long id;

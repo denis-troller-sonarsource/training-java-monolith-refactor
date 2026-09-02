@@ -50,6 +50,9 @@ dependencies {
     // Derby is needed at test runtime for the in-memory characterization DB.
     testRuntimeOnly('org.apache.derby:derby:10.17.1.0')
 
+    // Shared in-memory DB test harness (InMemoryDatabase/Schema) from :common.
+    testImplementation(testFixtures(project(':common')))
+
     // Servlet API is compileOnly for production (the container provides it); tests that
     // drive the ServletContextListener need it on the test classpath.
     testImplementation('jakarta.servlet:jakarta.servlet-api:6.1.0')

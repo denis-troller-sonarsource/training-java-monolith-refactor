@@ -3,11 +3,12 @@ package com.sourcegraph.demo.bigbadmonolith.service;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.UserDAO;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.entity.Customer;
-import com.sourcegraph.demo.bigbadmonolith.entity.User;
+import com.sourcegraph.demo.bigbadmonolith.users.api.User;
+import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
+import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
 import org.joda.time.LocalDate;
 
 import java.math.BigDecimal;
@@ -15,21 +16,21 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class DataInitializationService {
-    
-    private UserDAO userDAO = new UserDAO();
+
+    private UserService userService = Users.service();
     private CustomerDAO customerDAO = new CustomerDAO();
     private BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
     private BillableHourDAO billableHourDAO = new BillableHourDAO();
-    
+
     public void initializeSampleData() throws SQLException {
-        List<User> existingUsers = userDAO.findAll();
+        List<User> existingUsers = userService.listUsers();
         if (!existingUsers.isEmpty()) {
             return;
         }
-        
+
         // Create sample users
-        User user1 = userDAO.save(new User("john.doe@example.com", "John Doe"));
-        User user2 = userDAO.save(new User("jane.smith@example.com", "Jane Smith"));
+        User user1 = userService.createUser(new User("john.doe@example.com", "John Doe"));
+        User user2 = userService.createUser(new User("jane.smith@example.com", "Jane Smith"));
         
         // Create sample customers
         Customer customer1 = customerDAO.save(new Customer("Acme Corp", "billing@acme.com", "123 Business St"));

@@ -8,7 +8,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     CustomerDAO customerDAO = new CustomerDAO();
-    UserDAO userDAO = new UserDAO();
     BillableHourDAO billableHourDAO = new BillableHourDAO();
     BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
     
