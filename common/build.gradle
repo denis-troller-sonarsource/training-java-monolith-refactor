@@ -27,7 +27,6 @@ dependencies {
     // derbytools provides the EmbeddedDriver autoloading needed at runtime.
     api('org.apache.derby:derby:10.17.1.0')
     api('org.apache.derby:derbytools:10.17.1.0')
-    api('joda-time:joda-time:2.12.5')
 
     compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
 

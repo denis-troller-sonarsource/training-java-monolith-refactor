@@ -9,7 +9,7 @@ import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
-import org.joda.time.LocalDate;
+import java.time.LocalDate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ class DefaultBillableHourServiceTest {
     @Test
     void logHourAssignsId() {
         BillableHour saved = service.logHour(
-            newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
+            newHour(new BigDecimal("8.50"), "Work done", LocalDate.of(2024, 1, 15)));
 
         assertThat(saved.getId()).isNotNull();
     }
@@ -69,15 +69,15 @@ class DefaultBillableHourServiceTest {
     @Test
     void getHourReturnsLoggedHour() {
         BillableHour saved = service.logHour(
-            newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
+            newHour(new BigDecimal("8.50"), "Work done", LocalDate.of(2024, 1, 15)));
 
         assertThat(service.getHour(saved.getId()).getNote()).isEqualTo("Work done");
     }
 
     @Test
     void listHoursForCustomerReturnsCustomerHours() {
-        service.logHour(newHour(new BigDecimal("1.00"), "older", new LocalDate(2024, 1, 1)));
-        service.logHour(newHour(new BigDecimal("2.00"), "newer", new LocalDate(2024, 3, 1)));
+        service.logHour(newHour(new BigDecimal("1.00"), "older", LocalDate.of(2024, 1, 1)));
+        service.logHour(newHour(new BigDecimal("2.00"), "newer", LocalDate.of(2024, 3, 1)));
 
         List<BillableHour> hours = service.listHoursForCustomer(customerId);
 
@@ -88,8 +88,8 @@ class DefaultBillableHourServiceTest {
 
     @Test
     void listHoursForUserReturnsUserHours() {
-        service.logHour(newHour(new BigDecimal("1.00"), "first", new LocalDate(2024, 1, 1)));
-        service.logHour(newHour(new BigDecimal("2.00"), "second", new LocalDate(2024, 2, 1)));
+        service.logHour(newHour(new BigDecimal("1.00"), "first", LocalDate.of(2024, 1, 1)));
+        service.logHour(newHour(new BigDecimal("2.00"), "second", LocalDate.of(2024, 2, 1)));
 
         List<BillableHour> hours = service.listHoursForUser(userId);
 
@@ -100,8 +100,8 @@ class DefaultBillableHourServiceTest {
 
     @Test
     void listHoursReturnsAll() {
-        service.logHour(newHour(new BigDecimal("1.00"), "a", new LocalDate(2024, 1, 1)));
-        service.logHour(newHour(new BigDecimal("2.00"), "b", new LocalDate(2024, 2, 1)));
+        service.logHour(newHour(new BigDecimal("1.00"), "a", LocalDate.of(2024, 1, 1)));
+        service.logHour(newHour(new BigDecimal("2.00"), "b", LocalDate.of(2024, 2, 1)));
 
         List<BillableHour> all = service.listHours();
 
@@ -111,7 +111,7 @@ class DefaultBillableHourServiceTest {
     @Test
     void updateHourChangesPersistedFields() {
         BillableHour saved = service.logHour(
-            newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
+            newHour(new BigDecimal("8.50"), "Work done", LocalDate.of(2024, 1, 15)));
         saved.setHours(new BigDecimal("4.25"));
         saved.setNote("Updated note");
 
@@ -125,7 +125,7 @@ class DefaultBillableHourServiceTest {
     @Test
     void deleteHourRemovesHour() {
         BillableHour saved = service.logHour(
-            newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
+            newHour(new BigDecimal("8.50"), "Work done", LocalDate.of(2024, 1, 15)));
 
         boolean deleted = service.deleteHour(saved.getId());
 

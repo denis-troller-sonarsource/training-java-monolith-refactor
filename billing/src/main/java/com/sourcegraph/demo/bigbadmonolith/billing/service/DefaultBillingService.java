@@ -12,12 +12,13 @@ import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.common.DateTimeUtils;
-import org.joda.time.LocalDate;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,7 @@ public class DefaultBillingService implements BillingService {
         
         for (BillableHour hour : allHours) {
             LocalDate dateLogged = hour.getDateLogged();
-            if (dateLogged.getYear() == year && dateLogged.getMonthOfYear() == month) {
+            if (dateLogged.getYear() == year && dateLogged.getMonthValue() == month) {
                 BillingCategory category = categoryService.getCategory(hour.getCategoryId());
                 if (category != null) {
                     BigDecimal lineAmount = hour.getHours().multiply(category.getHourlyRate());
@@ -104,7 +105,7 @@ public class DefaultBillingService implements BillingService {
         report.put("totalRevenue", totalRevenue);
         report.put("totalHours", totalHours);
         report.put("revenueByCategory", revenueByCategory);
-        report.put("generatedDate", LocalDate.now());
+        report.put("generatedDate", LocalDate.now(ZoneId.systemDefault()));
         
         return report;
     }
@@ -130,7 +131,7 @@ public class DefaultBillingService implements BillingService {
         
         if (hour.getDateLogged() == null) {
             validationErrors += "Date logged is required. ";
-        } else if (hour.getDateLogged().isAfter(LocalDate.now())) {
+        } else if (hour.getDateLogged().isAfter(LocalDate.now(ZoneId.systemDefault()))) {
             validationErrors += "Date logged cannot be in the future. ";
         } else if (!DateTimeUtils.isWorkingDay(hour.getDateLogged())) {
             validationErrors += "Warning: Hours logged on weekend. ";
