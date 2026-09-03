@@ -1,13 +1,16 @@
 package com.sourcegraph.demo.bigbadmonolith.timesheet.repository;
 
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
-import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
+import com.sourcegraph.demo.bigbadmonolith.catalog.repository.JdbcBillingCategoryRepository;
+import com.sourcegraph.demo.bigbadmonolith.catalog.service.DefaultBillingCategoryService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
-import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
+import com.sourcegraph.demo.bigbadmonolith.customers.repository.JdbcCustomerRepository;
+import com.sourcegraph.demo.bigbadmonolith.customers.service.DefaultCustomerService;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
-import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
+import com.sourcegraph.demo.bigbadmonolith.users.repository.JdbcUserRepository;
+import com.sourcegraph.demo.bigbadmonolith.users.service.DefaultUserService;
 import java.time.LocalDate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,9 +42,11 @@ class JdbcBillableHourRepositoryTest {
         db = InMemoryDatabase.createAndInstall();
         dao = new JdbcBillableHourRepository();
 
-        Customer customer = Customers.service().createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
-        User user = Users.service().createUser(new User("user@example.com", "Sample User"));
-        BillingCategory category = Catalog.service()
+        Customer customer = new DefaultCustomerService(new JdbcCustomerRepository())
+            .createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
+        User user = new DefaultUserService(new JdbcUserRepository())
+            .createUser(new User("user@example.com", "Sample User"));
+        BillingCategory category = new DefaultBillingCategoryService(new JdbcBillingCategoryRepository())
             .createCategory(new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));
 
         customerId = customer.getId();

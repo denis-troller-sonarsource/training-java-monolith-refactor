@@ -4,6 +4,7 @@ import com.sourcegraph.demo.bigbadmonolith.billing.api.CustomerBillLine;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.MonthlySummaryRow;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.RevenueByCategoryRow;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.RevenueByCustomerRow;
+import com.sourcegraph.demo.bigbadmonolith.billing.api.UserRevenueRow;
 import com.sourcegraph.demo.bigbadmonolith.common.DataAccessException;
 import com.sourcegraph.demo.bigbadmonolith.common.JdbcSupport;
 
@@ -73,6 +74,21 @@ public class JdbcReportRepository {
         + "GROUP BY bc.name, bc.hourly_rate "
         + "ORDER BY total_revenue DESC";
 
+    private static final String TOTAL_REVENUE_SQL =
+        "SELECT COALESCE(SUM(bh.hours * bc.hourly_rate), 0) as total_revenue "
+        + "FROM billable_hours bh "
+        + "JOIN billing_categories bc ON bh.category_id = bc.id";
+
+    private static final String REVENUE_BY_USER_SQL =
+        "SELECT u.id as user_id, u.name as user_name, u.email as user_email, "
+        + "COALESCE(SUM(bh.hours), 0) as total_hours, "
+        + "COALESCE(SUM(bh.hours * bc.hourly_rate), 0) as total_revenue "
+        + "FROM users u "
+        + "LEFT JOIN billable_hours bh ON u.id = bh.user_id "
+        + "LEFT JOIN billing_categories bc ON bh.category_id = bc.id "
+        + "GROUP BY u.id, u.name, u.email "
+        + "ORDER BY total_revenue DESC";
+
     /** A customer's display name and email, or {@code null} when the customer does not exist. */
     public record CustomerContact(String name, String email) {
     }
@@ -114,6 +130,20 @@ public class JdbcReportRepository {
             JdbcReportRepository::mapRevenueByCategory);
     }
 
+    /** Returns the total revenue across every billable hour, or {@link BigDecimal#ZERO} when none. */
+    public BigDecimal totalRevenue() {
+        BigDecimal total = JdbcSupport.queryOne(TOTAL_REVENUE_SQL, "Failed to load total revenue",
+            stmt -> { /* no parameters */ },
+            rs -> nonNull(rs.getBigDecimal(COL_TOTAL_REVENUE)));
+        return total == null ? BigDecimal.ZERO : total;
+    }
+
+    /** Returns per-user revenue totals across all time. */
+    public List<UserRevenueRow> revenueByUser() {
+        return JdbcSupport.queryList(REVENUE_BY_USER_SQL, "Failed to load revenue by user",
+            JdbcReportRepository::mapUserRevenue);
+    }
+
     private static CustomerBillLine mapBillLine(ResultSet rs) throws SQLException {
         Date dateLogged = rs.getDate("date_logged");
         return new CustomerBillLine(
@@ -145,6 +175,15 @@ public class JdbcReportRepository {
         return new RevenueByCategoryRow(
             rs.getString(COL_NAME),
             nonNull(rs.getBigDecimal(COL_HOURLY_RATE)),
+            nonNull(rs.getBigDecimal(COL_TOTAL_HOURS)),
+            nonNull(rs.getBigDecimal(COL_TOTAL_REVENUE)));
+    }
+
+    private static UserRevenueRow mapUserRevenue(ResultSet rs) throws SQLException {
+        return new UserRevenueRow(
+            rs.getLong("user_id"),
+            rs.getString("user_name"),
+            rs.getString("user_email"),
             nonNull(rs.getBigDecimal(COL_TOTAL_HOURS)),
             nonNull(rs.getBigDecimal(COL_TOTAL_REVENUE)));
     }

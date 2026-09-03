@@ -4,6 +4,7 @@ import com.sourcegraph.demo.bigbadmonolith.common.ConnectionManager;
 import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 import com.sourcegraph.demo.bigbadmonolith.service.DataInitializationService;
 
+import jakarta.inject.Inject;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
@@ -15,6 +16,13 @@ import java.util.logging.Logger;
 public class StartupListener implements ServletContextListener {
 
     private static final Logger LOGGER = Logger.getLogger(StartupListener.class.getName());
+
+    private final DataInitializationService dataService;
+
+    @Inject
+    public StartupListener(DataInitializationService dataService) {
+        this.dataService = dataService;
+    }
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -28,7 +36,6 @@ public class StartupListener implements ServletContextListener {
             }
 
             // Initialize sample data
-            DataInitializationService dataService = new DataInitializationService();
             dataService.initializeSampleData();
             LOGGER.info("Sample data initialized successfully");
         } catch (RuntimeException e) {

@@ -3,7 +3,6 @@ package com.sourcegraph.demo.bigbadmonolith.timesheet.service;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourRepository;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
-import com.sourcegraph.demo.bigbadmonolith.timesheet.repository.JdbcBillableHourRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -22,16 +21,6 @@ public class DefaultBillableHourService implements BillableHourService {
     @Inject
     public DefaultBillableHourService(BillableHourRepository billableHourRepository) {
         this.billableHourRepository = billableHourRepository;
-    }
-
-    /**
-     * No-arg constructor for non-CDI callers reached via {@link java.util.ServiceLoader}
-     * (see {@link com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet}). Classpath-mode
-     * ServiceLoader requires a public no-arg constructor, so this self-wires the default JDBC
-     * repository. Retired once the web layer is fully CDI-managed (Phase 5).
-     */
-    public DefaultBillableHourService() {
-        this(new JdbcBillableHourRepository());
     }
 
     @Override

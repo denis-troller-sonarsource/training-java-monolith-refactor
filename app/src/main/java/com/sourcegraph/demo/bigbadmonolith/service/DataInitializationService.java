@@ -2,16 +2,12 @@ package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
-import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
-import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
-import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
-import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
@@ -22,10 +18,20 @@ import java.util.List;
 @ApplicationScoped
 public class DataInitializationService {
 
-    private final UserService userService;
-    private final CustomerService customerService;
-    private final BillingCategoryService categoryService;
-    private final BillableHourService billableHourService;
+    private UserService userService;
+    private CustomerService customerService;
+    private BillingCategoryService categoryService;
+    private BillableHourService billableHourService;
+
+    /**
+     * Protected no-arg constructor required by CDI. This is a normal-scoped ({@code
+     * @ApplicationScoped}) bean injected by its concrete type into {@link
+     * com.sourcegraph.demo.bigbadmonolith.StartupListener}, so Weld must build a client proxy for
+     * it, which the spec requires a non-private no-arg constructor for. Not for application use.
+     */
+    protected DataInitializationService() {
+        // Populated by the @Inject constructor; exists only so the CDI client proxy is buildable.
+    }
 
     @Inject
     public DataInitializationService(UserService userService,
@@ -36,16 +42,6 @@ public class DataInitializationService {
         this.customerService = customerService;
         this.categoryService = categoryService;
         this.billableHourService = billableHourService;
-    }
-
-    /**
-     * No-arg constructor for non-CDI callers (the {@link
-     * com.sourcegraph.demo.bigbadmonolith.StartupListener} still {@code new}s this). Self-wires
-     * each context service via its {@link java.util.ServiceLoader} factory. Retired once the
-     * bootstrap is fully CDI-managed.
-     */
-    public DataInitializationService() {
-        this(Users.service(), Customers.service(), Catalog.service(), Timesheet.service());
     }
 
     public void initializeSampleData() {

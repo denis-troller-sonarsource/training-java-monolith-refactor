@@ -11,4 +11,10 @@ public record RevenueByCustomerRow(
     BigDecimal totalHours,
     BigDecimal totalRevenue,
     BigDecimal averageRate) {
+
+    // JavaBean-style getters so Jakarta Pages EL can render these records in the JSP views.
+    public String getCustomerName() { return customerName; }
+    public BigDecimal getTotalHours() { return totalHours; }
+    public BigDecimal getTotalRevenue() { return totalRevenue; }
+    public BigDecimal getAverageRate() { return averageRate; }
 }
