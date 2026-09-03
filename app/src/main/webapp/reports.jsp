@@ -1,21 +1,18 @@
 <%@ page import="java.util.*" %>
 <%@ page import="java.text.DecimalFormat" %>
 <%@ page import="java.math.BigDecimal" %>
-<%@ page import="java.sql.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.customers.api.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.billing.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     CustomerService customerService = Customers.service();
-    BillingCategoryService categoryService = Catalog.service();
-    
+    ReportService reportService = Billing.reportService();
+
     String reportType = request.getParameter("reportType");
     String customerId = request.getParameter("customerId");
     String month = request.getParameter("month");
     String year = request.getParameter("year");
 
-    String dbUrl = "jdbc:derby:./data/bigbadmonolith;create=true";
-    
     DecimalFormat df = new DecimalFormat("#,##0.00");
 %>
 <html>
@@ -46,7 +43,7 @@
     <div class="header">
         <h1>Billing Reports</h1>
     </div>
-    
+
     <div class="nav">
         <a href="index.jsp">Dashboard</a>
         <a href="customers.jsp">Customers</a>
@@ -55,7 +52,7 @@
         <a href="hours.jsp">Log Hours</a>
         <a href="reports.jsp">Reports</a>
     </div>
-    
+
     <div class="content">
         <h2>Generate Reports</h2>
         <form method="get" action="reports.jsp">
@@ -68,7 +65,7 @@
                     <option value="revenue" <%= "revenue".equals(reportType) ? "selected" : "" %>>Revenue Summary</option>
                 </select>
             </div>
-            
+
             <% if ("customer".equals(reportType)) { %>
             <div class="form-group">
                 <label for="customerId">Customer:</label>
@@ -79,7 +76,7 @@
                             List<Customer> customers = customerService.listCustomers();
                             for (Customer customer : customers) {
                                 String selected = customer.getId().toString().equals(customerId) ? "selected" : "";
-                                out.println("<option value='" + customer.getId() + "' " + selected + ">" + 
+                                out.println("<option value='" + customer.getId() + "' " + selected + ">" +
                                           customer.getName() + "</option>");
                             }
                         } catch (Exception e) {
@@ -89,7 +86,7 @@
                 </select>
             </div>
             <% } %>
-            
+
             <% if ("monthly".equals(reportType)) { %>
             <div class="form-group">
                 <label for="year">Year:</label>
@@ -98,9 +95,9 @@
             <div class="form-group">
                 <label for="month">Month:</label>
                 <select id="month" name="month">
-                    <% 
+                    <%
                         String[] months = {"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
-                        String[] monthNames = {"January", "February", "March", "April", "May", "June", 
+                        String[] monthNames = {"January", "February", "March", "April", "May", "June",
                                              "July", "August", "September", "October", "November", "December"};
                         for (int i = 0; i < months.length; i++) {
                             String selected = months[i].equals(month) ? "selected" : "";
@@ -110,59 +107,26 @@
                 </select>
             </div>
             <% } %>
-            
+
             <button type="submit" class="btn">Generate Report</button>
         </form>
-        
+
         <%
             if ("customer".equals(reportType) && customerId != null && !customerId.trim().isEmpty()) {
         %>
         <div class="report-section">
             <h2>Customer Bill Report</h2>
             <%
-                Connection conn = null;
-                PreparedStatement pstmt = null;
-                ResultSet rs = null;
-                
-                String customerName = "";
-                String customerEmail = "";
-                double totalAmount = 0.0;
-                double totalHours = 0.0;
-                
                 try {
-                    Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-                    conn = DriverManager.getConnection(dbUrl);
-                    
-                    pstmt = conn.prepareStatement("SELECT name, email FROM customers WHERE id = ?");
-                    pstmt.setInt(1, Integer.parseInt(customerId));
-                    rs = pstmt.executeQuery();
-                    
-                    if (rs.next()) {
-                        customerName = rs.getString("name");
-                        customerEmail = rs.getString("email");
-                    }
-                    rs.close();
-                    pstmt.close();
-                    
-                    pstmt = conn.prepareStatement(
-                        "SELECT bh.date_logged, u.name as user_name, bc.name as category_name, " +
-                        "bh.hours, bc.hourly_rate, bh.hours * bc.hourly_rate as line_total, bh.note " +
-                        "FROM billable_hours bh " +
-                        "JOIN users u ON bh.user_id = u.id " +
-                        "JOIN billing_categories bc ON bh.category_id = bc.id " +
-                        "WHERE bh.customer_id = ? " +
-                        "ORDER BY bh.date_logged DESC"
-                    );
-                    pstmt.setInt(1, Integer.parseInt(customerId));
-                    rs = pstmt.executeQuery();
+                    CustomerBillReport bill = reportService.customerBill(Long.parseLong(customerId));
             %>
-            
+
             <div class="summary-box">
                 <h3>Bill To:</h3>
-                <p><strong><%= customerName %></strong><br>
-                Email: <%= customerEmail %></p>
+                <p><strong><%= bill.customerName() %></strong><br>
+                Email: <%= bill.customerEmail() %></p>
             </div>
-            
+
             <table>
                 <thead>
                     <tr>
@@ -177,41 +141,33 @@
                 </thead>
                 <tbody>
                     <%
-                        while (rs.next()) {
-                            double lineTotal = rs.getDouble("line_total");
-                            double hours = rs.getDouble("hours");
-                            totalAmount += lineTotal;
-                            totalHours += hours;
+                        for (CustomerBillLine line : bill.lines()) {
                     %>
                         <tr>
-                            <td><%= rs.getDate("date_logged") %></td>
-                            <td><%= rs.getString("user_name") %></td>
-                            <td><%= rs.getString("category_name") %></td>
-                            <td class="text-right"><%= df.format(hours) %></td>
-                            <td class="text-right">$<%= df.format(rs.getDouble("hourly_rate")) %></td>
-                            <td class="text-right">$<%= df.format(lineTotal) %></td>
-                            <td><%= rs.getString("note") != null ? rs.getString("note") : "" %></td>
+                            <td><%= line.dateLogged() %></td>
+                            <td><%= line.userName() %></td>
+                            <td><%= line.categoryName() %></td>
+                            <td class="text-right"><%= df.format(line.hours()) %></td>
+                            <td class="text-right">$<%= df.format(line.hourlyRate()) %></td>
+                            <td class="text-right">$<%= df.format(line.lineTotal()) %></td>
+                            <td><%= line.note() != null ? line.note() : "" %></td>
                         </tr>
                     <%
                         }
                     %>
                     <tr style="background-color: #f8f9fa; font-weight: bold;">
                         <td colspan="3">TOTAL</td>
-                        <td class="text-right"><%= df.format(totalHours) %></td>
+                        <td class="text-right"><%= df.format(bill.totalHours()) %></td>
                         <td></td>
-                        <td class="text-right">$<%= df.format(totalAmount) %></td>
+                        <td class="text-right">$<%= df.format(bill.totalAmount()) %></td>
                         <td></td>
                     </tr>
                 </tbody>
             </table>
-            
+
             <%
                 } catch (Exception e) {
                     out.println("<p>Error generating customer report: " + e.getMessage() + "</p>");
-                } finally {
-                    try { if (rs != null) rs.close(); } catch (Exception e) {}
-                    try { if (pstmt != null) pstmt.close(); } catch (Exception e) {}
-                    try { if (conn != null) conn.close(); } catch (Exception e) {}
                 }
             %>
         </div>
@@ -221,33 +177,11 @@
         <div class="report-section">
             <h2>Monthly Summary - <%= month %>/<%= year %></h2>
             <%
-                Connection conn = null;
-                PreparedStatement pstmt = null;
-                ResultSet rs = null;
-                
                 try {
-                    Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-                    conn = DriverManager.getConnection(dbUrl);
-                    
-                    String startDate = year + "-" + month + "-01";
-                    String endDate = year + "-" + month + "-31";
-                    
-                    pstmt = conn.prepareStatement(
-                        "SELECT c.name as customer_name, " +
-                        "SUM(bh.hours) as total_hours, " +
-                        "SUM(bh.hours * bc.hourly_rate) as total_amount " +
-                        "FROM billable_hours bh " +
-                        "JOIN customers c ON bh.customer_id = c.id " +
-                        "JOIN billing_categories bc ON bh.category_id = bc.id " +
-                        "WHERE bh.date_logged >= ? AND bh.date_logged <= ? " +
-                        "GROUP BY c.name " +
-                        "ORDER BY total_amount DESC"
-                    );
-                    pstmt.setDate(1, java.sql.Date.valueOf(startDate));
-                    pstmt.setDate(2, java.sql.Date.valueOf(endDate));
-                    rs = pstmt.executeQuery();
+                    List<MonthlySummaryRow> monthlyRows =
+                        reportService.monthlySummary(Integer.parseInt(year), Integer.parseInt(month));
             %>
-            
+
             <table>
                 <thead>
                     <tr>
@@ -258,19 +192,17 @@
                 </thead>
                 <tbody>
                     <%
-                        double monthlyTotal = 0.0;
-                        double monthlyHours = 0.0;
-                        
-                        while (rs.next()) {
-                            double customerTotal = rs.getDouble("total_amount");
-                            double customerHours = rs.getDouble("total_hours");
-                            monthlyTotal += customerTotal;
-                            monthlyHours += customerHours;
+                        BigDecimal monthlyTotal = BigDecimal.ZERO;
+                        BigDecimal monthlyHours = BigDecimal.ZERO;
+
+                        for (MonthlySummaryRow row : monthlyRows) {
+                            monthlyTotal = monthlyTotal.add(row.totalAmount());
+                            monthlyHours = monthlyHours.add(row.totalHours());
                     %>
                         <tr>
-                            <td><%= rs.getString("customer_name") %></td>
-                            <td class="text-right"><%= df.format(customerHours) %></td>
-                            <td class="text-right">$<%= df.format(customerTotal) %></td>
+                            <td><%= row.customerName() %></td>
+                            <td class="text-right"><%= df.format(row.totalHours()) %></td>
+                            <td class="text-right">$<%= df.format(row.totalAmount()) %></td>
                         </tr>
                     <%
                         }
@@ -282,14 +214,10 @@
                     </tr>
                 </tbody>
             </table>
-            
+
             <%
                 } catch (Exception e) {
                     out.println("<p>Error generating monthly report: " + e.getMessage() + "</p>");
-                } finally {
-                    try { if (rs != null) rs.close(); } catch (Exception e) {}
-                    try { if (pstmt != null) pstmt.close(); } catch (Exception e) {}
-                    try { if (conn != null) conn.close(); } catch (Exception e) {}
                 }
             %>
         </div>
@@ -299,16 +227,9 @@
         <div class="report-section">
             <h2>Revenue Summary</h2>
             <%
-                Connection conn = null;
-                Statement stmt = null;
-                ResultSet rs = null;
-                
                 try {
-                    Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-                    conn = DriverManager.getConnection(dbUrl);
-                    stmt = conn.createStatement();
             %>
-            
+
             <h3>By Customer</h3>
             <table>
                 <thead>
@@ -321,36 +242,20 @@
                 </thead>
                 <tbody>
                     <%
-                        rs = stmt.executeQuery(
-                            "SELECT c.name, " +
-                            "SUM(bh.hours) as total_hours, " +
-                            "SUM(bh.hours * bc.hourly_rate) as total_revenue, " +
-                            "AVG(bc.hourly_rate) as avg_rate " +
-                            "FROM customers c " +
-                            "LEFT JOIN billable_hours bh ON c.id = bh.customer_id " +
-                            "LEFT JOIN billing_categories bc ON bh.category_id = bc.id " +
-                            "GROUP BY c.name " +
-                            "ORDER BY total_revenue DESC"
-                        );
-                        
-                        while (rs.next()) {
-                            double totalHours = rs.getDouble("total_hours");
-                            double totalRevenue = rs.getDouble("total_revenue");
-                            double avgRate = rs.getDouble("avg_rate");
+                        for (RevenueByCustomerRow row : reportService.revenueByCustomer()) {
                     %>
                         <tr>
-                            <td><%= rs.getString("name") %></td>
-                            <td class="text-right"><%= df.format(totalHours) %></td>
-                            <td class="text-right">$<%= df.format(totalRevenue) %></td>
-                            <td class="text-right">$<%= df.format(avgRate) %></td>
+                            <td><%= row.customerName() %></td>
+                            <td class="text-right"><%= df.format(row.totalHours()) %></td>
+                            <td class="text-right">$<%= df.format(row.totalRevenue()) %></td>
+                            <td class="text-right">$<%= df.format(row.averageRate()) %></td>
                         </tr>
                     <%
                         }
-                        rs.close();
                     %>
                 </tbody>
             </table>
-            
+
             <h3>By Category</h3>
             <table>
                 <thead>
@@ -363,44 +268,30 @@
                 </thead>
                 <tbody>
                     <%
-                        rs = stmt.executeQuery(
-                            "SELECT bc.name, bc.hourly_rate, " +
-                            "COALESCE(SUM(bh.hours), 0) as total_hours, " +
-                            "COALESCE(SUM(bh.hours * bc.hourly_rate), 0) as total_revenue " +
-                            "FROM billing_categories bc " +
-                            "LEFT JOIN billable_hours bh ON bc.id = bh.category_id " +
-                            "GROUP BY bc.name, bc.hourly_rate " +
-                            "ORDER BY total_revenue DESC"
-                        );
-                        
-                        while (rs.next()) {
+                        for (RevenueByCategoryRow row : reportService.revenueByCategory()) {
                     %>
                         <tr>
-                            <td><%= rs.getString("name") %></td>
-                            <td class="text-right">$<%= df.format(rs.getDouble("hourly_rate")) %></td>
-                            <td class="text-right"><%= df.format(rs.getDouble("total_hours")) %></td>
-                            <td class="text-right">$<%= df.format(rs.getDouble("total_revenue")) %></td>
+                            <td><%= row.categoryName() %></td>
+                            <td class="text-right">$<%= df.format(row.hourlyRate()) %></td>
+                            <td class="text-right"><%= df.format(row.totalHours()) %></td>
+                            <td class="text-right">$<%= df.format(row.totalRevenue()) %></td>
                         </tr>
                     <%
                         }
                     %>
                 </tbody>
             </table>
-            
+
             <%
                 } catch (Exception e) {
                     out.println("<div class='error'>Error generating revenue summary: " + e.getMessage() + "</div>");
-                } finally {
-                    try { if (rs != null) rs.close(); } catch (Exception e) {}
-                    try { if (stmt != null) stmt.close(); } catch (Exception e) {}
-                    try { if (conn != null) conn.close(); } catch (Exception e) {}
                 }
             %>
         </div>
         <%
             }
         %>
-        
+
 
     </div>
 </body>
