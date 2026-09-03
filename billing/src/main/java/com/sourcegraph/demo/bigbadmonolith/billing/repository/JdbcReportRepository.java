@@ -95,6 +95,7 @@ public class JdbcReportRepository {
     public List<MonthlySummaryRow> monthlySummary(LocalDate startDate, LocalDate endDate) {
         return JdbcSupport.queryList(MONTHLY_SUMMARY_SQL, "Failed to load monthly summary",
             stmt -> {
+                // Derby (JDBC 4.1) needs java.sql.Date here; setObject(LocalDate) is unsupported.
                 stmt.setDate(1, Date.valueOf(startDate));
                 stmt.setDate(2, Date.valueOf(endDate));
             },
