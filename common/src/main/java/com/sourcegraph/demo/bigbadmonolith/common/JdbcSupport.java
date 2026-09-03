@@ -64,6 +64,25 @@ public final class JdbcSupport {
         }
     }
 
+    /** Returns every row matching the bound parameters, mapped by {@code mapper}. */
+    public static <T> List<T> queryList(String sql, String errorMessage, ParameterBinder binder, RowMapper<T> mapper) {
+        List<T> results = new ArrayList<>();
+        try (Connection conn = LibertyConnectionManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            binder.bind(stmt);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    results.add(mapper.map(rs));
+                }
+                return results;
+            }
+
+        } catch (SQLException e) {
+            throw new DataAccessException(errorMessage, e);
+        }
+    }
+
     /** Executes an update/delete and reports whether any row was affected. */
     public static boolean update(String sql, String errorMessage, ParameterBinder binder) {
         try (Connection conn = LibertyConnectionManager.getConnection();

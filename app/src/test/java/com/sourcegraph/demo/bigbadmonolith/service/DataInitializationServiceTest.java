@@ -1,6 +1,7 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
-import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
@@ -28,7 +29,7 @@ class DataInitializationServiceTest {
     private UserService userService;
     private CustomerService customerService;
     private BillingCategoryService categoryService;
-    private BillableHourDAO billableHourDAO;
+    private BillableHourService billableHourService;
 
     @BeforeEach
     void setUp() throws SQLException {
@@ -37,7 +38,7 @@ class DataInitializationServiceTest {
         userService = Users.service();
         customerService = Customers.service();
         categoryService = Catalog.service();
-        billableHourDAO = new BillableHourDAO();
+        billableHourService = Timesheet.service();
     }
 
     @AfterEach
@@ -46,23 +47,23 @@ class DataInitializationServiceTest {
     }
 
     @Test
-    void initializeSampleDataSeedsExpectedCounts() throws SQLException {
+    void initializeSampleDataSeedsExpectedCounts() {
         service.initializeSampleData();
 
         assertThat(userService.listUsers()).hasSize(2);
         assertThat(customerService.listCustomers()).hasSize(3);
         assertThat(categoryService.listCategories()).hasSize(3);
-        assertThat(billableHourDAO.findAll()).hasSize(6);
+        assertThat(billableHourService.listHours()).hasSize(6);
     }
 
     @Test
-    void initializeSampleDataIsIdempotent() throws SQLException {
+    void initializeSampleDataIsIdempotent() {
         service.initializeSampleData();
         service.initializeSampleData();
 
         assertThat(userService.listUsers()).hasSize(2);
         assertThat(customerService.listCustomers()).hasSize(3);
         assertThat(categoryService.listCategories()).hasSize(3);
-        assertThat(billableHourDAO.findAll()).hasSize(6);
+        assertThat(billableHourService.listHours()).hasSize(6);
     }
 }

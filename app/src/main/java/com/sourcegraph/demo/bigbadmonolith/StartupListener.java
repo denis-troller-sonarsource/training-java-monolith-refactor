@@ -31,7 +31,7 @@ public class StartupListener implements ServletContextListener {
             DataInitializationService dataService = new DataInitializationService();
             dataService.initializeSampleData();
             LOGGER.info("Sample data initialized successfully");
-        } catch (RuntimeException | java.sql.SQLException e) {
+        } catch (RuntimeException e) {
             LOGGER.log(Level.SEVERE, "Failed to initialize application", e);
         }
     }

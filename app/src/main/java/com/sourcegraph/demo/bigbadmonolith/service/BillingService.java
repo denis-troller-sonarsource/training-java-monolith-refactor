@@ -1,35 +1,35 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
-import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
-import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.common.DateTimeUtils;
 import org.joda.time.LocalDate;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class BillingService {
-    
-    private BillableHourDAO billableHourDAO = new BillableHourDAO();
+
+    private BillableHourService billableHourService = Timesheet.service();
     private BillingCategoryService categoryService = Catalog.service();
     private CustomerService customerService = Customers.service();
 
-    public Map<String, Object> generateCustomerBill(Long customerId) throws SQLException {
+    public Map<String, Object> generateCustomerBill(Long customerId) {
         Customer customer = customerService.getCustomer(customerId);
         if (customer == null) {
             throw new RuntimeException("Customer not found");
         }
-        
-        List<BillableHour> hours = billableHourDAO.findByCustomerId(customerId);
+
+        List<BillableHour> hours = billableHourService.listHoursForCustomer(customerId);
         
         BigDecimal totalAmount = BigDecimal.ZERO;
         BigDecimal totalHours = BigDecimal.ZERO;
@@ -53,8 +53,8 @@ public class BillingService {
         return bill;
     }
     
-    public Map<String, Object> generateMonthlyReport(int year, int month) throws SQLException {
-        List<BillableHour> allHours = billableHourDAO.findAll();
+    public Map<String, Object> generateMonthlyReport(int year, int month) {
+        List<BillableHour> allHours = billableHourService.listHours();
         
         BigDecimal totalRevenue = BigDecimal.ZERO;
         BigDecimal totalHours = BigDecimal.ZERO;
