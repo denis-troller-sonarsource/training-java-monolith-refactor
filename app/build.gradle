@@ -37,6 +37,10 @@ dependencies {
     compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
     compileOnly('jakarta.servlet:jakarta.servlet-api:6.1.0')
 
+    // JAX-RS API for the REST layer. Liberty provides the implementation at runtime via
+    // jakartaee-10.0, so this is compile-only (never bundled into the WAR).
+    compileOnly('jakarta.ws.rs:jakarta.ws.rs-api:3.1.0')
+
     // Derby database
     implementation('org.apache.derby:derby:10.17.1.0')
     implementation('org.apache.derby:derbytools:10.17.1.0')
@@ -54,6 +58,14 @@ dependencies {
     // Servlet API is compileOnly for production (the container provides it); tests that
     // drive the ServletContextListener need it on the test classpath.
     testImplementation('jakarta.servlet:jakarta.servlet-api:6.1.0')
+
+    // JAX-RS API on the test classpath so REST resource tests can build Response objects and
+    // exercise the resources directly (no container needed).
+    testImplementation('jakarta.ws.rs:jakarta.ws.rs-api:3.1.0')
+
+    // A JAX-RS RuntimeDelegate implementation so Response.ok(...).build() works in plain unit
+    // tests (Liberty supplies its own at runtime; this is test-only).
+    testRuntimeOnly('org.glassfish.jersey.core:jersey-common:3.1.11')
 }
 
 tasks.register('integrationTest', Test) {

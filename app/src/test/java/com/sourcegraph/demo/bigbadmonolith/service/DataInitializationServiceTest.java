@@ -66,4 +66,17 @@ class DataInitializationServiceTest {
         assertThat(categoryService.listCategories()).hasSize(3);
         assertThat(billableHourService.listHours()).hasSize(6);
     }
+
+    @Test
+    void injectedConstructorSeedsWithSuppliedServices() {
+        DataInitializationService injected = new DataInitializationService(
+            userService, customerService, categoryService, billableHourService);
+
+        injected.initializeSampleData();
+
+        assertThat(userService.listUsers()).hasSize(2);
+        assertThat(customerService.listCustomers()).hasSize(3);
+        assertThat(categoryService.listCategories()).hasSize(3);
+        assertThat(billableHourService.listHours()).hasSize(6);
+    }
 }
