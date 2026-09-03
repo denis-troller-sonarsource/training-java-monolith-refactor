@@ -1,4 +1,4 @@
-package com.sourcegraph.demo.bigbadmonolith.entity;
+package com.sourcegraph.demo.bigbadmonolith.timesheet.api;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -12,7 +12,9 @@ public class BillableHour {
     private Long categoryId;
     private BigDecimal hours;
     private String note;
+    // TODO(phase4): migrate Joda -> java.time
     private LocalDate dateLogged;
+    // TODO(phase4): migrate Joda -> java.time
     private DateTime createdAt;
 
     public BillableHour() {}

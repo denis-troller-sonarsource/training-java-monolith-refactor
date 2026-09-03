@@ -1,6 +1,5 @@
 <%@ page import="java.util.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.timesheet.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.users.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -93,12 +92,12 @@
             </thead>
             <tbody>
                 <%
-                    BillableHourDAO billableHourDAO = new BillableHourDAO();
+                    BillableHourService billableHourService = Timesheet.service();
                     BillingCategoryService categoryService = Catalog.service();
                     
                     try {
                         List<User> users = userService.listUsers();
-                        List<BillableHour> allBillableHours = billableHourDAO.findAll();
+                        List<BillableHour> allBillableHours = billableHourService.listHours();
                         List<BillingCategory> categories = categoryService.listCategories();
                         
                         Map<Long, BillingCategory> categoryMap = new HashMap<>();

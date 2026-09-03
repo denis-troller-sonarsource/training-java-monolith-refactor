@@ -1,13 +1,13 @@
-package com.sourcegraph.demo.bigbadmonolith.dao;
+package com.sourcegraph.demo.bigbadmonolith.timesheet.repository;
 
-import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
+import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
-import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import org.joda.time.LocalDate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,15 +20,15 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Characterization tests for {@link BillableHourDAO} against a real in-memory Derby database.
- * Foreign keys are enforced, so each test first seeds a customer, user, and billing category via
- * the sibling DAOs and reuses their generated ids. These lock in the DAO's current CRUD behavior
- * (including {@code ORDER BY date_logged DESC}) before the modular refactoring begins.
+ * Characterization tests for {@link JdbcBillableHourRepository} against a real in-memory Derby
+ * database. Foreign keys are enforced, so each test first seeds a customer, user, and billing
+ * category via the sibling contexts' services and reuses their generated ids. These lock in the
+ * repository's current CRUD behavior (including {@code ORDER BY date_logged DESC}).
  */
-class BillableHourDAOTest {
+class JdbcBillableHourRepositoryTest {
 
     private InMemoryDatabase db;
-    private BillableHourDAO dao;
+    private JdbcBillableHourRepository dao;
 
     private Long customerId;
     private Long userId;
@@ -37,7 +37,7 @@ class BillableHourDAOTest {
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        dao = new BillableHourDAO();
+        dao = new JdbcBillableHourRepository();
 
         Customer customer = Customers.service().createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
         User user = Users.service().createUser(new User("user@example.com", "Sample User"));
@@ -59,7 +59,7 @@ class BillableHourDAOTest {
     }
 
     @Test
-    void savePopulatesGeneratedId() throws SQLException {
+    void savePopulatesGeneratedId() {
         BillableHour saved = dao.save(
             newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
 
@@ -67,7 +67,7 @@ class BillableHourDAOTest {
     }
 
     @Test
-    void findByIdReturnsSavedHour() throws SQLException {
+    void findByIdReturnsSavedHour() {
         BillableHour saved = dao.save(
             newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
 
@@ -84,12 +84,12 @@ class BillableHourDAOTest {
     }
 
     @Test
-    void findByIdReturnsNullWhenAbsent() throws SQLException {
+    void findByIdReturnsNullWhenAbsent() {
         assertThat(dao.findById(9999L)).isNull();
     }
 
     @Test
-    void findByCustomerIdOrdersByDateLoggedDescending() throws SQLException {
+    void findByCustomerIdOrdersByDateLoggedDescending() {
         dao.save(newHour(new BigDecimal("1.00"), "older", new LocalDate(2024, 1, 1)));
         dao.save(newHour(new BigDecimal("2.00"), "newer", new LocalDate(2024, 3, 1)));
         dao.save(newHour(new BigDecimal("3.00"), "middle", new LocalDate(2024, 2, 1)));
@@ -102,14 +102,14 @@ class BillableHourDAOTest {
     }
 
     @Test
-    void findByCustomerIdReturnsEmptyForUnknownCustomer() throws SQLException {
+    void findByCustomerIdReturnsEmptyForUnknownCustomer() {
         dao.save(newHour(new BigDecimal("1.00"), "work", new LocalDate(2024, 1, 1)));
 
         assertThat(dao.findByCustomerId(9999L)).isEmpty();
     }
 
     @Test
-    void findByUserIdReturnsHoursForUser() throws SQLException {
+    void findByUserIdReturnsHoursForUser() {
         dao.save(newHour(new BigDecimal("1.00"), "first", new LocalDate(2024, 1, 1)));
         dao.save(newHour(new BigDecimal("2.00"), "second", new LocalDate(2024, 2, 1)));
 
@@ -121,7 +121,7 @@ class BillableHourDAOTest {
     }
 
     @Test
-    void findAllReturnsEveryHour() throws SQLException {
+    void findAllReturnsEveryHour() {
         dao.save(newHour(new BigDecimal("1.00"), "a", new LocalDate(2024, 1, 1)));
         dao.save(newHour(new BigDecimal("2.00"), "b", new LocalDate(2024, 2, 1)));
 
@@ -133,7 +133,7 @@ class BillableHourDAOTest {
     }
 
     @Test
-    void updateChangesPersistedFields() throws SQLException {
+    void updateChangesPersistedFields() {
         BillableHour saved = dao.save(
             newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
         saved.setHours(new BigDecimal("4.25"));
@@ -150,7 +150,7 @@ class BillableHourDAOTest {
     }
 
     @Test
-    void deleteRemovesHour() throws SQLException {
+    void deleteRemovesHour() {
         BillableHour saved = dao.save(
             newHour(new BigDecimal("8.50"), "Work done", new LocalDate(2024, 1, 15)));
 

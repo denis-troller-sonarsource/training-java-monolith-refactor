@@ -1,7 +1,6 @@
 <%@ page import="java.util.*" %>
 <%@ page import="java.math.BigDecimal" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.timesheet.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
@@ -131,11 +130,11 @@
             </thead>
             <tbody>
                 <%
-                    BillableHourDAO billableHourDAO = new BillableHourDAO();
-                    
+                    BillableHourService billableHourService = Timesheet.service();
+
                     try {
                         List<BillingCategory> categories = categoryService.listCategories();
-                        List<BillableHour> allBillableHours = billableHourDAO.findAll();
+                        List<BillableHour> allBillableHours = billableHourService.listHours();
                         
                         categories.sort((c1, c2) -> c1.getName().compareTo(c2.getName()));
                         

@@ -2,14 +2,13 @@
 <%@ page import="java.math.BigDecimal" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="org.joda.time.LocalDate" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.timesheet.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.customers.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.users.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    BillableHourDAO billableHourDAO = new BillableHourDAO();
+    BillableHourService billableHourService = Timesheet.service();
     CustomerService customerService = Customers.service();
     UserService userService = Users.service();
     BillingCategoryService categoryService = Catalog.service();
@@ -60,7 +59,7 @@
                 BigDecimal hours = new BigDecimal(hoursStr);
                 
                 BillableHour billableHour = new BillableHour(customerId, userId, categoryId, hours, note, logDate);
-                billableHourDAO.save(billableHour);
+                billableHourService.logHour(billableHour);
                 message = "Hours logged successfully!";
             } catch (Exception e) {
                 message = "Error logging hours: " + e.getMessage();
@@ -210,7 +209,7 @@
             <tbody>
                 <%
                     try {
-                        List<BillableHour> recentHours = billableHourDAO.findAll();
+                        List<BillableHour> recentHours = billableHourService.listHours();
                         List<Customer> customers = customerService.listCustomers();
                         List<User> users = userService.listUsers();
                         List<BillingCategory> categories = categoryService.listCategories();

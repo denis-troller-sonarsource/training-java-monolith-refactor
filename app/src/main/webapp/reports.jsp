@@ -3,14 +3,11 @@
 <%@ page import="java.math.BigDecimal" %>
 <%@ page import="java.sql.*" %>
 <%@ page import="org.joda.time.LocalDate" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
-<%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.customers.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     CustomerService customerService = Customers.service();
-    BillableHourDAO billableHourDAO = new BillableHourDAO();
     BillingCategoryService categoryService = Catalog.service();
     
     String reportType = request.getParameter("reportType");

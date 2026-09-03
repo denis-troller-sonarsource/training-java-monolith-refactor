@@ -1,8 +1,9 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
-import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
-import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
@@ -37,7 +38,7 @@ class BillingServiceTest {
     private BillingService service;
 
     private BillingCategoryService categoryService;
-    private BillableHourDAO billableHourDAO;
+    private BillableHourService billableHourService;
 
     private Long customerId;
     private Long userId;
@@ -49,7 +50,7 @@ class BillingServiceTest {
         service = new BillingService();
 
         categoryService = Catalog.service();
-        billableHourDAO = new BillableHourDAO();
+        billableHourService = Timesheet.service();
 
         Customer customer = Customers.service().createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
         User user = Users.service().createUser(new User("user@example.com", "Sample User"));
@@ -66,8 +67,8 @@ class BillingServiceTest {
         db.close();
     }
 
-    private BillableHour seedHour(BigDecimal hours, Long catId, LocalDate dateLogged) throws SQLException {
-        return billableHourDAO.save(
+    private BillableHour seedHour(BigDecimal hours, Long catId, LocalDate dateLogged) {
+        return billableHourService.logHour(
             new BillableHour(customerId, userId, catId, hours, "note", dateLogged));
     }
 
