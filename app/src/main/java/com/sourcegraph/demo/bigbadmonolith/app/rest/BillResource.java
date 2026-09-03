@@ -24,6 +24,11 @@ public class BillResource {
 
     private final BillingService billingService;
 
+    /** Required so Weld can create the normal-scoped client proxy; never used for real calls. */
+    protected BillResource() {
+        this.billingService = null;
+    }
+
     @Inject
     public BillResource(BillingService billingService) {
         this.billingService = billingService;

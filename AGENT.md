@@ -1,25 +1,53 @@
 # Agent Instructions for big-bad-monolith
 
-## ⚠️ Important: This is a Legacy Training Application
+## Status: migrated to a modular monolith
 
-This application intentionally contains **legacy anti-patterns** and **security vulnerabilities** for educational purposes. It demonstrates common issues found in legacy enterprise applications that need modernization.
+This started as a legacy single-WAR JSP monolith full of intentional anti-patterns. It has since
+been migrated to a **modular monolith** (see `README.md` for the full architecture). The
+anti-patterns described later in this file are **historical** — the starting point the migration
+removed — kept here as a record of what was fixed. The current codebase is the target of that work;
+do not reintroduce the old patterns.
 
-**DO NOT use patterns from this codebase in production applications.**
+## Application Architecture (current)
 
-## Application Architecture (Current Legacy State)
+- **Modules**: `:common`, `:users`, `:customers`, `:catalog`, `:timesheet`, `:billing`, `:app`
+  (multi-module Gradle build). Each domain context is `api` / `service` / `repository`; cross-module
+  code depends only on another context's `api` package. Boundaries are enforced by a SonarQube
+  intended-architecture model (`sonar context architecture get-intended`) — zero violations.
+- **Presentation**: `@WebServlet` MVC controllers + scriptlet-free JSTL/EL JSP views under
+  `app/src/main/webapp/WEB-INF/views/`. Output is HTML-escaped; mutations use Post/Redirect/Get.
+- **REST**: JAX-RS resources under `/api` in `app/.../app/rest`.
+- **Business logic**: in the context/billing services (not in views).
+- **Data access**: `Jdbc*Repository` classes over `common.JdbcSupport`; failures surface as
+  `common.DataAccessException`.
+- **DI**: CDI (`@ApplicationScoped` services, `@Inject` everywhere; no ServiceLoader bridges).
+- **Dates**: `java.time` (no Joda-Time). **Database**: Apache Derby.
+- **Tests**: JUnit 5 + AssertJ against an in-memory Derby harness (`:common` test fixtures), plus
+  forked-JVM integration tests for container-only paths. Coverage via JaCoCo → SonarQube.
 
-- **Presentation Layer**: JSP files with extensive Java scriptlets (anti-pattern)
-- **Business Logic**: Mixed between JSP pages and service classes (anti-pattern)
-- **Data Access**: DAO classes with inconsistent error handling
-- **Database**: Apache Derby embedded database
-- **No REST APIs**: Pure JSP/servlet-based web application
-- **No Tests**: Part of training is to add comprehensive test coverage
+### Working in this codebase
+- Put cross-context types in a context's `api` package; never import another context's
+  `service`/`repository`. New repositories use `common.JdbcSupport`.
+- After changing the web layer, smoke-test on Liberty (`./gradlew :app:libertyStart`, curl the pages
+  and `/api/*`, check `app/build/wlp/usr/servers/defaultServer/logs/messages.log`), because
+  servlet/JSP/CDI wiring is not exercised by unit tests.
+
+## Historical anti-patterns (removed by the migration)
+
+The original application intentionally contained **legacy anti-patterns** and **security
+vulnerabilities** for educational purposes. **DO NOT reintroduce these** — they have all been fixed:
+
+- **Presentation Layer**: JSP files with extensive Java scriptlets (removed → MVC + JSTL/EL)
+- **Business Logic**: mixed into JSP pages (removed → services)
+- **Data Access**: DAO classes with inconsistent error handling (→ repositories + DataAccessException)
+- **No REST APIs** (→ JAX-RS added)
+- **No Tests** (→ comprehensive JUnit 5 suite)
 
 ## Build/Test Commands
-- **Build**: `./gradlew build` (compiles application, currently no tests)
+- **Build**: `./gradlew build` (compiles all modules + runs the JUnit 5 suite)
 - **Clean build**: `./gradlew clean build`
-- **Test only**: `./gradlew test` (will show NO-SOURCE until tests are added)
-- **Single test**: `./gradlew test --tests "ClassName.methodName"`
+- **Test only**: `./gradlew test`
+- **Single test**: `./gradlew :<module>:test --tests "ClassName.methodName"`
 - **Compile only**: `./gradlew compileJava`
 - **Generate WAR**: `./gradlew war`
 
@@ -64,47 +92,41 @@ This application intentionally contains **legacy anti-patterns** and **security 
 - **Thread Safety Issues**: Non-thread-safe implementations
 - **Magic Numbers**: Hardcoded values without constants
 
-## File Structure
+## File Structure (current, multi-module)
 ```
-src/main/
-├── java/com/sourcegraph/demo/bigbadmonolith/
-│   ├── dao/                    # Data Access Objects (mixed quality)
-│   ├── entity/                 # Entity classes (legacy dependencies)
-│   ├── service/                # Service classes (tight coupling)
-│   └── util/                   # Utilities (various issues)
-└── webapp/                     # JSP files (scriptlet hell)
-    ├── index.jsp               # Dashboard with business logic
-    ├── customers.jsp           # Customer CRUD with validation in JSP
-    ├── hours.jsp               # Complex reporting logic in JSP
-    ├── reports.jsp             # Advanced business calculations in JSP
-    ├── categories.jsp          # Category management
-    └── users.jsp               # Complex aggregations in JSP
+settings.gradle / build.gradle       # multi-project build; root holds shared config + the sonar block
+common/    src/main/java/.../common/         # ConnectionManager, LibertyConnectionManager, JdbcSupport,
+           src/testFixtures/java/.../testsupport/   #   DataAccessException, DateTimeUtils; InMemoryDatabase harness
+users/     src/main/java/.../users/{api,service,repository}/
+customers/ src/main/java/.../customers/{api,service,repository}/
+catalog/   src/main/java/.../catalog/{api,service,repository}/
+timesheet/ src/main/java/.../timesheet/{api,service,repository}/
+billing/   src/main/java/.../billing/{api,service,repository}/
+app/       src/main/java/.../app/rest/       # JAX-RS resources + RestApplication
+           src/main/java/.../app/web/        # @WebServlet MVC controllers + ViewSupport
+           src/main/webapp/WEB-INF/views/    # scriptlet-free JSTL/EL JSP views
+           src/main/java/.../StartupListener, service/DataInitializationService
+           src/main/liberty/config/server.xml
 ```
 
-## Training Objectives
+## Migration history (completed)
 
-Trainees should learn to identify and fix:
-1. **Security vulnerabilities** (SQL injection vulnerabilities)
-2. **Null pointer exceptions** (Inconsistent null handling)
-3. **Resource management** issues (connection leaks)
-4. **Thread safety** problems (Non-thread-safe implementations)
-5. **Architectural issues** (business logic in presentation layer)
-6. **Legacy dependencies** (Joda-Time migration)
+The refactor was delivered as small, individually SonarQube-gated PRs; these objectives are DONE:
+1. Characterization + unit test safety net (was: no tests)
+2. Fixed the security issues: SQL-injection-prone patterns, resource leaks, stored XSS in the hours
+   page, and the destructive customer-delete GET (now POST)
+3. Consistent error handling via `DataAccessException` (was: inconsistent null/SQLException handling)
+4. Removed the thread-unsafe `SimpleDateFormat`; migrated Joda-Time → `java.time`
+5. Extracted business logic out of JSPs into services; proper MVC + JAX-RS; CDI dependency injection
+6. Enforced module boundaries via a SonarQube intended-architecture model
 
-## Development Guidelines for Refactoring
+## Development Guidelines
 
-### Testing Strategy (Add Tests First!)
-- **Characterization Tests**: Document current behavior before changing
-- **Integration Tests**: Test JSP workflows end-to-end
-- **Security Tests**: Prove vulnerabilities exist, then verify fixes
-- **Performance Tests**: Measure before/after improvements
-
-### Refactoring Approach
-1. **Phase 1**: Fix critical security issues and null pointer exceptions
-2. **Phase 2**: Extract business logic from JSPs to services
-3. **Phase 3**: Modernize date/time handling
-4. **Phase 4**: Implement proper MVC pattern with JAX-RS
-5. **Phase 5**: Add dependency injection and clean architecture
+### Testing Strategy
+- **Unit/characterization tests** run against an in-memory Derby harness (`:common` test fixtures).
+- **Integration tests**: forked-JVM source sets for container-only paths (JNDI, servlet lifecycle).
+- Keep new-code coverage ≥ 80% and duplication ≤ 3% (the SonarQube quality gate enforces this per PR).
+- Smoke-test the web layer on Liberty after web changes — unit tests don't exercise JSP/servlet/CDI wiring.
 
 ### Code Style (For New/Refactored Code)
 - **Java 17** with modern features

@@ -32,6 +32,11 @@ public class BillableHourResource {
 
     private final BillableHourService billableHourService;
 
+    /** Required so Weld can create the normal-scoped client proxy; never used for real calls. */
+    protected BillableHourResource() {
+        this.billableHourService = null;
+    }
+
     @Inject
     public BillableHourResource(BillableHourService billableHourService) {
         this.billableHourService = billableHourService;

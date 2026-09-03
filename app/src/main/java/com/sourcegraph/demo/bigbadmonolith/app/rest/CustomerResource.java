@@ -31,6 +31,11 @@ public class CustomerResource {
 
     private final CustomerService customerService;
 
+    /** Required so Weld can create the normal-scoped client proxy; never used for real calls. */
+    protected CustomerResource() {
+        this.customerService = null;
+    }
+
     @Inject
     public CustomerResource(CustomerService customerService) {
         this.customerService = customerService;

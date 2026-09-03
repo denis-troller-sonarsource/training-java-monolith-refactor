@@ -23,6 +23,10 @@ sourceSets {
 configurations {
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+
+    // Derby JARs to install into the Liberty server's derbyLib (the server.xml <library> fileset),
+    // so the JNDI jdbc/DefaultDataSource resolves instead of falling back to embedded Derby.
+    derbyLib
 }
 
 dependencies {
@@ -72,7 +76,24 @@ dependencies {
     // A JAX-RS RuntimeDelegate implementation so Response.ok(...).build() works in plain unit
     // tests (Liberty supplies its own at runtime; this is test-only).
     testRuntimeOnly('org.glassfish.jersey.core:jersey-common:3.1.11')
+
+    // Derby engine JARs installed into the Liberty derbyLib (not the WAR): derby (engine),
+    // derbyshared (runtime support), derbytools (EmbeddedDriver/DataSource classes).
+    derbyLib('org.apache.derby:derby:10.17.1.0')
+    derbyLib('org.apache.derby:derbyshared:10.17.1.0')
+    derbyLib('org.apache.derby:derbytools:10.17.1.0')
 }
+
+// Copy the Derby JARs into the Liberty server's derby/ directory so the derbyLib <library>
+// fileset in server.xml resolves the embedded DataSource. Wired after libertyCreate (which
+// materializes the server config dir) and before the server actually runs.
+tasks.register('installDerbyLib', Copy) {
+    from configurations.derbyLib
+    into layout.buildDirectory.dir('wlp/usr/servers/defaultServer/derby')
+}
+tasks.matching { it.name == 'libertyCreate' }.configureEach { finalizedBy 'installDerbyLib' }
+tasks.matching { it.name in ['libertyStart', 'libertyRun', 'libertyDev', 'libertyPackage'] }
+    .configureEach { dependsOn 'installDerbyLib' }
 
 tasks.register('integrationTest', Test) {
     description = 'Runs integration tests (servlet lifecycle) in a forked JVM.'

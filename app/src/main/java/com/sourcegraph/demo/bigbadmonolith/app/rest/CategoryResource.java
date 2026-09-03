@@ -30,6 +30,11 @@ public class CategoryResource {
 
     private final BillingCategoryService categoryService;
 
+    /** Required so Weld can create the normal-scoped client proxy; never used for real calls. */
+    protected CategoryResource() {
+        this.categoryService = null;
+    }
+
     @Inject
     public CategoryResource(BillingCategoryService categoryService) {
         this.categoryService = categoryService;
