@@ -29,6 +29,11 @@ public class ReportResource {
 
     private final ReportService reportService;
 
+    /** Required so Weld can create the normal-scoped client proxy; never used for real calls. */
+    protected ReportResource() {
+        this.reportService = null;
+    }
+
     @Inject
     public ReportResource(ReportService reportService) {
         this.reportService = reportService;
