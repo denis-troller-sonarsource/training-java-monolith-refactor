@@ -18,4 +18,10 @@ public final class Billing {
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("No BillingService implementation registered"));
     }
+
+    public static ReportService reportService() {
+        return ServiceLoader.load(ReportService.class)
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No ReportService implementation registered"));
+    }
 }
