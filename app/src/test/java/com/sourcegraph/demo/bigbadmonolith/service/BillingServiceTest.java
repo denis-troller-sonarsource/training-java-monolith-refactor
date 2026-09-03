@@ -1,10 +1,11 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
 import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
-import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
@@ -35,7 +36,7 @@ class BillingServiceTest {
     private InMemoryDatabase db;
     private BillingService service;
 
-    private BillingCategoryDAO categoryDAO;
+    private BillingCategoryService categoryService;
     private BillableHourDAO billableHourDAO;
 
     private Long customerId;
@@ -47,13 +48,13 @@ class BillingServiceTest {
         db = InMemoryDatabase.createAndInstall();
         service = new BillingService();
 
-        categoryDAO = new BillingCategoryDAO();
+        categoryService = Catalog.service();
         billableHourDAO = new BillableHourDAO();
 
         Customer customer = Customers.service().createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
         User user = Users.service().createUser(new User("user@example.com", "Sample User"));
-        BillingCategory category = categoryDAO
-            .save(new BillingCategory("Development", "Dev work", new BigDecimal("100.00")));
+        BillingCategory category = categoryService
+            .createCategory(new BillingCategory("Development", "Dev work", new BigDecimal("100.00")));
 
         customerId = customer.getId();
         userId = user.getId();
@@ -152,8 +153,8 @@ class BillingServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void generateMonthlyReportIncludesOnlyInMonthRows() throws SQLException {
-        BillingCategory consulting = categoryDAO
-            .save(new BillingCategory("Consulting", "Advisory", new BigDecimal("200.00")));
+        BillingCategory consulting = categoryService
+            .createCategory(new BillingCategory("Consulting", "Advisory", new BigDecimal("200.00")));
         // In target month 2024-03.
         seedHour(new BigDecimal("2.00"), categoryId, new LocalDate(2024, 3, 5));
         seedHour(new BigDecimal("1.00"), consulting.getId(), new LocalDate(2024, 3, 20));

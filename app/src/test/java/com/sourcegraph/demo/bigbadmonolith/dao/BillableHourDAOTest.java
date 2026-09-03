@@ -1,7 +1,8 @@
 package com.sourcegraph.demo.bigbadmonolith.dao;
 
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
-import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
@@ -40,8 +41,8 @@ class BillableHourDAOTest {
 
         Customer customer = Customers.service().createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
         User user = Users.service().createUser(new User("user@example.com", "Sample User"));
-        BillingCategory category = new BillingCategoryDAO()
-            .save(new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));
+        BillingCategory category = Catalog.service()
+            .createCategory(new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));
 
         customerId = customer.getId();
         userId = user.getId();

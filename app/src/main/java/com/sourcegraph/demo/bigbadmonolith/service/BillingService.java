@@ -1,12 +1,13 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
-import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.common.DateTimeUtils;
 import org.joda.time.LocalDate;
 
@@ -19,7 +20,7 @@ import java.util.Map;
 public class BillingService {
     
     private BillableHourDAO billableHourDAO = new BillableHourDAO();
-    private BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
+    private BillingCategoryService categoryService = Catalog.service();
     private CustomerService customerService = Customers.service();
 
     public Map<String, Object> generateCustomerBill(Long customerId) throws SQLException {
@@ -34,7 +35,7 @@ public class BillingService {
         BigDecimal totalHours = BigDecimal.ZERO;
         
         for (BillableHour hour : hours) {
-            BillingCategory category = categoryDAO.findById(hour.getCategoryId());
+            BillingCategory category = categoryService.getCategory(hour.getCategoryId());
             if (category != null) {
                 BigDecimal lineAmount = hour.getHours().multiply(category.getHourlyRate());
                 totalAmount = totalAmount.add(lineAmount);
@@ -62,7 +63,7 @@ public class BillingService {
         for (BillableHour hour : allHours) {
             LocalDate dateLogged = hour.getDateLogged();
             if (dateLogged.getYear() == year && dateLogged.getMonthOfYear() == month) {
-                BillingCategory category = categoryDAO.findById(hour.getCategoryId());
+                BillingCategory category = categoryService.getCategory(hour.getCategoryId());
                 if (category != null) {
                     BigDecimal lineAmount = hour.getHours().multiply(category.getHourlyRate());
                     totalRevenue = totalRevenue.add(lineAmount);
@@ -95,15 +96,11 @@ public class BillingService {
             validationErrors += "Invalid customer ID. ";
         }
 
-        try {
-            BillingCategory category = categoryDAO.findById(hour.getCategoryId());
-            if (category == null) {
-                validationErrors += "Invalid category ID. ";
-            }
-        } catch (SQLException e) {
-            validationErrors += "Database error checking category. ";
+        BillingCategory category = categoryService.getCategory(hour.getCategoryId());
+        if (category == null) {
+            validationErrors += "Invalid category ID. ";
         }
-        
+
         if (hour.getHours() == null || hour.getHours().compareTo(BigDecimal.ZERO) <= 0) {
             validationErrors += "Hours must be greater than zero. ";
         }

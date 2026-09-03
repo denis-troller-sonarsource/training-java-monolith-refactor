@@ -1,6 +1,6 @@
-package com.sourcegraph.demo.bigbadmonolith.dao;
+package com.sourcegraph.demo.bigbadmonolith.catalog.repository;
 
-import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,18 +14,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Characterization tests for {@link BillingCategoryDAO} against a real in-memory Derby database.
- * These lock in the DAO's current CRUD behavior before the modular refactoring begins.
+ * Characterization tests for {@link JdbcBillingCategoryRepository} against a real in-memory Derby
+ * database. These lock in the repository's current CRUD behavior, including the validation contract,
+ * before the modular refactoring is finalized.
  */
-class BillingCategoryDAOTest {
+class JdbcBillingCategoryRepositoryTest {
 
     private InMemoryDatabase db;
-    private BillingCategoryDAO dao;
+    private JdbcBillingCategoryRepository dao;
 
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        dao = new BillingCategoryDAO();
+        dao = new JdbcBillingCategoryRepository();
     }
 
     @AfterEach
@@ -34,7 +35,7 @@ class BillingCategoryDAOTest {
     }
 
     @Test
-    void savePopulatesGeneratedId() throws SQLException {
+    void savePopulatesGeneratedId() {
         BillingCategory saved = dao.save(
             new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));
 
@@ -48,7 +49,7 @@ class BillingCategoryDAOTest {
     }
 
     @Test
-    void findByIdReturnsSavedCategory() throws SQLException {
+    void findByIdReturnsSavedCategory() {
         BillingCategory saved = dao.save(
             new BillingCategory("Consulting", "Advisory", new BigDecimal("200.50")));
 
@@ -61,12 +62,12 @@ class BillingCategoryDAOTest {
     }
 
     @Test
-    void findByIdReturnsNullWhenAbsent() throws SQLException {
+    void findByIdReturnsNullWhenAbsent() {
         assertThat(dao.findById(9999L)).isNull();
     }
 
     @Test
-    void findAllOrdersByNameAscending() throws SQLException {
+    void findAllOrdersByNameAscending() {
         dao.save(new BillingCategory("Support", "Support work", new BigDecimal("100.00")));
         dao.save(new BillingCategory("Consulting", "Advisory", new BigDecimal("200.00")));
         dao.save(new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));
@@ -79,7 +80,7 @@ class BillingCategoryDAOTest {
     }
 
     @Test
-    void updateChangesPersistedFields() throws SQLException {
+    void updateChangesPersistedFields() {
         BillingCategory saved = dao.save(
             new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));
         saved.setName("Engineering");
@@ -96,7 +97,7 @@ class BillingCategoryDAOTest {
     }
 
     @Test
-    void deleteRemovesCategory() throws SQLException {
+    void deleteRemovesCategory() {
         BillingCategory saved = dao.save(
             new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));
 

@@ -1,7 +1,8 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
@@ -26,7 +27,7 @@ class DataInitializationServiceTest {
 
     private UserService userService;
     private CustomerService customerService;
-    private BillingCategoryDAO categoryDAO;
+    private BillingCategoryService categoryService;
     private BillableHourDAO billableHourDAO;
 
     @BeforeEach
@@ -35,7 +36,7 @@ class DataInitializationServiceTest {
         service = new DataInitializationService();
         userService = Users.service();
         customerService = Customers.service();
-        categoryDAO = new BillingCategoryDAO();
+        categoryService = Catalog.service();
         billableHourDAO = new BillableHourDAO();
     }
 
@@ -50,7 +51,7 @@ class DataInitializationServiceTest {
 
         assertThat(userService.listUsers()).hasSize(2);
         assertThat(customerService.listCustomers()).hasSize(3);
-        assertThat(categoryDAO.findAll()).hasSize(3);
+        assertThat(categoryService.listCategories()).hasSize(3);
         assertThat(billableHourDAO.findAll()).hasSize(6);
     }
 
@@ -61,7 +62,7 @@ class DataInitializationServiceTest {
 
         assertThat(userService.listUsers()).hasSize(2);
         assertThat(customerService.listCustomers()).hasSize(3);
-        assertThat(categoryDAO.findAll()).hasSize(3);
+        assertThat(categoryService.listCategories()).hasSize(3);
         assertThat(billableHourDAO.findAll()).hasSize(6);
     }
 }

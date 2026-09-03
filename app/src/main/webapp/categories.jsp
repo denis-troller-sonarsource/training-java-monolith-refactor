@@ -2,9 +2,10 @@
 <%@ page import="java.math.BigDecimal" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
+    BillingCategoryService categoryService = Catalog.service();
     String action = request.getParameter("action");
     String message = "";
     
@@ -16,7 +17,7 @@
         try {
             BigDecimal hourlyRate = new BigDecimal(hourlyRateStr);
             BillingCategory category = new BillingCategory(name, description, hourlyRate);
-            categoryDAO.save(category);
+            categoryService.createCategory(category);
             message = "Billing category added successfully!";
         } catch (NumberFormatException e) {
             message = "Error: Invalid hourly rate format";
@@ -33,10 +34,10 @@
             Long categoryId = Long.parseLong(id);
             BigDecimal newRate = new BigDecimal(hourlyRateStr);
             
-            BillingCategory category = categoryDAO.findById(categoryId);
+            BillingCategory category = categoryService.getCategory(categoryId);
             if (category != null) {
                 category.setHourlyRate(newRate);
-                categoryDAO.update(category);
+                categoryService.updateCategory(category);
                 message = "Hourly rate updated successfully!";
             } else {
                 message = "Error: Category not found";
@@ -133,7 +134,7 @@
                     BillableHourDAO billableHourDAO = new BillableHourDAO();
                     
                     try {
-                        List<BillingCategory> categories = categoryDAO.findAll();
+                        List<BillingCategory> categories = categoryService.listCategories();
                         List<BillableHour> allBillableHours = billableHourDAO.findAll();
                         
                         categories.sort((c1, c2) -> c1.getName().compareTo(c2.getName()));
