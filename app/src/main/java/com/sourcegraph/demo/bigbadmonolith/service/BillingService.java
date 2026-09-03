@@ -2,10 +2,11 @@ package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
-import com.sourcegraph.demo.bigbadmonolith.entity.Customer;
 import com.sourcegraph.demo.bigbadmonolith.common.DateTimeUtils;
 import org.joda.time.LocalDate;
 
@@ -19,10 +20,10 @@ public class BillingService {
     
     private BillableHourDAO billableHourDAO = new BillableHourDAO();
     private BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
-    private CustomerDAO customerDAO = new CustomerDAO();
-    
+    private CustomerService customerService = Customers.service();
+
     public Map<String, Object> generateCustomerBill(Long customerId) throws SQLException {
-        Customer customer = customerDAO.findById(customerId);
+        Customer customer = customerService.getCustomer(customerId);
         if (customer == null) {
             throw new RuntimeException("Customer not found");
         }
@@ -89,15 +90,11 @@ public class BillingService {
     public String validateBillableHour(BillableHour hour) {
         String validationErrors = "";
         
-        try {
-            Customer customer = customerDAO.findById(hour.getCustomerId());
-            if (customer == null) {
-                validationErrors += "Invalid customer ID. ";
-            }
-        } catch (SQLException e) {
-            validationErrors += "Database error checking customer. ";
+        Customer customer = customerService.getCustomer(hour.getCustomerId());
+        if (customer == null) {
+            validationErrors += "Invalid customer ID. ";
         }
-        
+
         try {
             BillingCategory category = categoryDAO.findById(hour.getCategoryId());
             if (category == null) {

@@ -5,9 +5,10 @@
 <%@ page import="org.joda.time.LocalDate" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.customers.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    CustomerDAO customerDAO = new CustomerDAO();
+    CustomerService customerService = Customers.service();
     BillableHourDAO billableHourDAO = new BillableHourDAO();
     BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
     
@@ -78,7 +79,7 @@
                     <option value="">Select Customer</option>
                     <%
                         try {
-                            List<Customer> customers = customerDAO.findAll();
+                            List<Customer> customers = customerService.listCustomers();
                             for (Customer customer : customers) {
                                 String selected = customer.getId().toString().equals(customerId) ? "selected" : "";
                                 out.println("<option value='" + customer.getId() + "' " + selected + ">" + 

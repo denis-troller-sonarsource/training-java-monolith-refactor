@@ -2,7 +2,8 @@ package com.sourcegraph.demo.bigbadmonolith.dao;
 
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
-import com.sourcegraph.demo.bigbadmonolith.entity.Customer;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
@@ -37,7 +38,7 @@ class BillableHourDAOTest {
         db = InMemoryDatabase.createAndInstall();
         dao = new BillableHourDAO();
 
-        Customer customer = new CustomerDAO().save(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
+        Customer customer = Customers.service().createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
         User user = Users.service().createUser(new User("user@example.com", "Sample User"));
         BillingCategory category = new BillingCategoryDAO()
             .save(new BillingCategory("Development", "Dev work", new BigDecimal("150.00")));

@@ -2,7 +2,8 @@ package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
 import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.CustomerDAO;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
@@ -24,7 +25,7 @@ class DataInitializationServiceTest {
     private DataInitializationService service;
 
     private UserService userService;
-    private CustomerDAO customerDAO;
+    private CustomerService customerService;
     private BillingCategoryDAO categoryDAO;
     private BillableHourDAO billableHourDAO;
 
@@ -33,7 +34,7 @@ class DataInitializationServiceTest {
         db = InMemoryDatabase.createAndInstall();
         service = new DataInitializationService();
         userService = Users.service();
-        customerDAO = new CustomerDAO();
+        customerService = Customers.service();
         categoryDAO = new BillingCategoryDAO();
         billableHourDAO = new BillableHourDAO();
     }
@@ -48,7 +49,7 @@ class DataInitializationServiceTest {
         service.initializeSampleData();
 
         assertThat(userService.listUsers()).hasSize(2);
-        assertThat(customerDAO.findAll()).hasSize(3);
+        assertThat(customerService.listCustomers()).hasSize(3);
         assertThat(categoryDAO.findAll()).hasSize(3);
         assertThat(billableHourDAO.findAll()).hasSize(6);
     }
@@ -59,7 +60,7 @@ class DataInitializationServiceTest {
         service.initializeSampleData();
 
         assertThat(userService.listUsers()).hasSize(2);
-        assertThat(customerDAO.findAll()).hasSize(3);
+        assertThat(customerService.listCustomers()).hasSize(3);
         assertThat(categoryDAO.findAll()).hasSize(3);
         assertThat(billableHourDAO.findAll()).hasSize(6);
     }
