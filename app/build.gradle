@@ -41,6 +41,12 @@ dependencies {
     // jakartaee-10.0, so this is compile-only (never bundled into the WAR).
     compileOnly('jakarta.ws.rs:jakarta.ws.rs-api:3.1.0')
 
+    // JSTL for the MVC JSP views (pure JSTL/EL, no scriptlets). The API is compile-only;
+    // the Glassfish implementation is bundled into the WAR so the tags resolve even though
+    // Liberty's jsp feature also provides JSTL at runtime.
+    compileOnly('jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.0')
+    implementation('org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1')
+
     // Derby database
     implementation('org.apache.derby:derby:10.17.1.0')
     implementation('org.apache.derby:derbytools:10.17.1.0')

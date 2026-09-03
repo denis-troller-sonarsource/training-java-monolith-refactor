@@ -3,7 +3,6 @@ package com.sourcegraph.demo.bigbadmonolith.users.service;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserRepository;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
-import com.sourcegraph.demo.bigbadmonolith.users.repository.JdbcUserRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -21,16 +20,6 @@ public class DefaultUserService implements UserService {
     @Inject
     public DefaultUserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-    }
-
-    /**
-     * No-arg constructor for non-CDI callers reached via {@link java.util.ServiceLoader}
-     * (see {@link com.sourcegraph.demo.bigbadmonolith.users.api.Users}). Classpath-mode
-     * ServiceLoader requires a public no-arg constructor, so this self-wires the default JDBC
-     * repository. Retired once the web layer is fully CDI-managed (Phase 5).
-     */
-    public DefaultUserService() {
-        this(new JdbcUserRepository());
     }
 
     @Override

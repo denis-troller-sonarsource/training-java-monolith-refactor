@@ -3,7 +3,6 @@ package com.sourcegraph.demo.bigbadmonolith.customers.service;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerRepository;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
-import com.sourcegraph.demo.bigbadmonolith.customers.repository.JdbcCustomerRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -21,16 +20,6 @@ public class DefaultCustomerService implements CustomerService {
     @Inject
     public DefaultCustomerService(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
-    }
-
-    /**
-     * No-arg constructor for non-CDI callers reached via {@link java.util.ServiceLoader}
-     * (see {@link com.sourcegraph.demo.bigbadmonolith.customers.api.Customers}). Classpath-mode
-     * ServiceLoader requires a public no-arg constructor, so this self-wires the default JDBC
-     * repository. Retired once the web layer is fully CDI-managed (Phase 5).
-     */
-    public DefaultCustomerService() {
-        this(new JdbcCustomerRepository());
     }
 
     @Override

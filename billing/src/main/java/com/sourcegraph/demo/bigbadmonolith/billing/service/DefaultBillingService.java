@@ -4,13 +4,10 @@ import com.sourcegraph.demo.bigbadmonolith.billing.api.BillingService;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.CustomerNotFoundException;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
-import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
-import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
-import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.common.DateTimeUtils;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -37,11 +34,6 @@ public class DefaultBillingService implements BillingService {
         this.billableHourService = billableHourService;
         this.categoryService = categoryService;
         this.customerService = customerService;
-    }
-
-    /** No-arg constructor for non-CDI callers via {@link java.util.ServiceLoader}. */
-    public DefaultBillingService() {
-        this(Timesheet.service(), Catalog.service(), Customers.service());
     }
 
     @Override

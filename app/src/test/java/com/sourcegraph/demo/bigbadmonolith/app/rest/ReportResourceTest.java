@@ -1,7 +1,8 @@
 package com.sourcegraph.demo.bigbadmonolith.app.rest;
 
-import com.sourcegraph.demo.bigbadmonolith.billing.api.Billing;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.CustomerBillReport;
+import com.sourcegraph.demo.bigbadmonolith.billing.repository.JdbcReportRepository;
+import com.sourcegraph.demo.bigbadmonolith.billing.service.DefaultReportService;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
@@ -22,7 +23,7 @@ class ReportResourceTest extends RestResourceTestBase {
 
     @BeforeEach
     void createResourceAndFixtures() {
-        resource = new ReportResource(Billing.reportService());
+        resource = new ReportResource(new DefaultReportService(new JdbcReportRepository()));
         customerId = customerService.createCustomer(
             new Customer("Acme Corp", "billing@acme.com", "123 Business St")).getId();
         Long userId = userService.createUser(new User("john@example.com", "John")).getId();

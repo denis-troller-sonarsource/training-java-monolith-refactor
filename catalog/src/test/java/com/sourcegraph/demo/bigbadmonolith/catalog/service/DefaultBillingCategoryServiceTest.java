@@ -2,6 +2,7 @@ package com.sourcegraph.demo.bigbadmonolith.catalog.service;
 
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
+import com.sourcegraph.demo.bigbadmonolith.catalog.repository.JdbcBillingCategoryRepository;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,7 @@ class DefaultBillingCategoryServiceTest {
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        service = new DefaultBillingCategoryService();
+        service = new DefaultBillingCategoryService(new JdbcBillingCategoryRepository());
     }
 
     @AfterEach

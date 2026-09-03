@@ -6,6 +6,7 @@ import com.sourcegraph.demo.bigbadmonolith.billing.api.MonthlySummaryRow;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.ReportService;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.RevenueByCategoryRow;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.RevenueByCustomerRow;
+import com.sourcegraph.demo.bigbadmonolith.billing.api.UserRevenueRow;
 import com.sourcegraph.demo.bigbadmonolith.billing.repository.JdbcReportRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -28,11 +29,6 @@ public class DefaultReportService implements ReportService {
     @Inject
     public DefaultReportService(JdbcReportRepository repository) {
         this.repository = repository;
-    }
-
-    /** No-arg constructor for non-CDI callers via {@link java.util.ServiceLoader}. */
-    public DefaultReportService() {
-        this(new JdbcReportRepository());
     }
 
     @Override
@@ -69,5 +65,15 @@ public class DefaultReportService implements ReportService {
     @Override
     public List<RevenueByCategoryRow> revenueByCategory() {
         return repository.revenueByCategory();
+    }
+
+    @Override
+    public BigDecimal totalRevenue() {
+        return repository.totalRevenue();
+    }
+
+    @Override
+    public List<UserRevenueRow> revenueByUser() {
+        return repository.revenueByUser();
     }
 }

@@ -2,6 +2,7 @@ package com.sourcegraph.demo.bigbadmonolith.customers.service;
 
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
+import com.sourcegraph.demo.bigbadmonolith.customers.repository.JdbcCustomerRepository;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,7 @@ class DefaultCustomerServiceTest {
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        service = new DefaultCustomerService();
+        service = new DefaultCustomerService(new JdbcCustomerRepository());
     }
 
     @AfterEach

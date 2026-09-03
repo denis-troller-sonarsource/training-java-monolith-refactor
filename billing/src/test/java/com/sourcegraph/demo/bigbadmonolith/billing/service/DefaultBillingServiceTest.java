@@ -5,14 +5,19 @@ import com.sourcegraph.demo.bigbadmonolith.billing.api.CustomerNotFoundException
 import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
-import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.repository.JdbcBillableHourRepository;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.service.DefaultBillableHourService;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
-import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
+import com.sourcegraph.demo.bigbadmonolith.catalog.repository.JdbcBillingCategoryRepository;
+import com.sourcegraph.demo.bigbadmonolith.catalog.service.DefaultBillingCategoryService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
-import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
+import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
+import com.sourcegraph.demo.bigbadmonolith.customers.repository.JdbcCustomerRepository;
+import com.sourcegraph.demo.bigbadmonolith.customers.service.DefaultCustomerService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
-import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
+import com.sourcegraph.demo.bigbadmonolith.users.repository.JdbcUserRepository;
+import com.sourcegraph.demo.bigbadmonolith.users.service.DefaultUserService;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -50,13 +55,15 @@ class DefaultBillingServiceTest {
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        service = new DefaultBillingService();
 
-        categoryService = Catalog.service();
-        billableHourService = Timesheet.service();
+        categoryService = new DefaultBillingCategoryService(new JdbcBillingCategoryRepository());
+        billableHourService = new DefaultBillableHourService(new JdbcBillableHourRepository());
+        CustomerService customerService = new DefaultCustomerService(new JdbcCustomerRepository());
+        service = new DefaultBillingService(billableHourService, categoryService, customerService);
 
-        Customer customer = Customers.service().createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
-        User user = Users.service().createUser(new User("user@example.com", "Sample User"));
+        Customer customer = customerService.createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
+        User user = new DefaultUserService(new JdbcUserRepository())
+            .createUser(new User("user@example.com", "Sample User"));
         BillingCategory category = categoryService
             .createCategory(new BillingCategory("Development", "Dev work", new BigDecimal("100.00")));
 

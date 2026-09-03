@@ -1,7 +1,7 @@
 package com.sourcegraph.demo.bigbadmonolith.app.rest;
 
-import com.sourcegraph.demo.bigbadmonolith.billing.api.Billing;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.CustomerNotFoundException;
+import com.sourcegraph.demo.bigbadmonolith.billing.service.DefaultBillingService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,8 @@ class BillResourceTest extends RestResourceTestBase {
 
     @BeforeEach
     void createResource() {
-        resource = new BillResource(Billing.service());
+        resource = new BillResource(
+            new DefaultBillingService(billableHourService, categoryService, customerService));
     }
 
     @Test

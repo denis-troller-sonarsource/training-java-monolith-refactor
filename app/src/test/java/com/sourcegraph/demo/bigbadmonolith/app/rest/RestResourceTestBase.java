@@ -1,14 +1,18 @@
 package com.sourcegraph.demo.bigbadmonolith.app.rest;
 
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
-import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
+import com.sourcegraph.demo.bigbadmonolith.catalog.repository.JdbcBillingCategoryRepository;
+import com.sourcegraph.demo.bigbadmonolith.catalog.service.DefaultBillingCategoryService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
-import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
+import com.sourcegraph.demo.bigbadmonolith.customers.repository.JdbcCustomerRepository;
+import com.sourcegraph.demo.bigbadmonolith.customers.service.DefaultCustomerService;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
-import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.repository.JdbcBillableHourRepository;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.service.DefaultBillableHourService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
-import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
+import com.sourcegraph.demo.bigbadmonolith.users.repository.JdbcUserRepository;
+import com.sourcegraph.demo.bigbadmonolith.users.service.DefaultUserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -31,10 +35,10 @@ abstract class RestResourceTestBase {
     @BeforeEach
     void installDatabase() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        userService = Users.service();
-        customerService = Customers.service();
-        categoryService = Catalog.service();
-        billableHourService = Timesheet.service();
+        userService = new DefaultUserService(new JdbcUserRepository());
+        customerService = new DefaultCustomerService(new JdbcCustomerRepository());
+        categoryService = new DefaultBillingCategoryService(new JdbcBillingCategoryRepository());
+        billableHourService = new DefaultBillableHourService(new JdbcBillableHourRepository());
     }
 
     @AfterEach

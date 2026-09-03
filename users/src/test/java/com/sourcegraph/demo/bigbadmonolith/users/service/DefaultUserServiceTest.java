@@ -3,6 +3,7 @@ package com.sourcegraph.demo.bigbadmonolith.users.service;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
+import com.sourcegraph.demo.bigbadmonolith.users.repository.JdbcUserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ class DefaultUserServiceTest {
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        service = new DefaultUserService();
+        service = new DefaultUserService(new JdbcUserRepository());
     }
 
     @AfterEach

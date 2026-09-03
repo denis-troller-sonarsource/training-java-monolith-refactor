@@ -1,5 +1,6 @@
 package com.sourcegraph.demo.bigbadmonolith.billing.api;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -26,4 +27,16 @@ public interface ReportService {
 
     /** Per-category revenue summary across all time, ordered by revenue descending. */
     List<RevenueByCategoryRow> revenueByCategory();
+
+    /**
+     * Total revenue across every billable hour (sum of {@code hours * hourly_rate}). Used by the
+     * dashboard. Returns {@link BigDecimal#ZERO} when there are no billable hours.
+     */
+    BigDecimal totalRevenue();
+
+    /**
+     * Per-user revenue rollup across all time: each user with the total hours and total revenue
+     * logged against them, ordered by revenue descending. Users with no hours appear with zeros.
+     */
+    List<UserRevenueRow> revenueByUser();
 }

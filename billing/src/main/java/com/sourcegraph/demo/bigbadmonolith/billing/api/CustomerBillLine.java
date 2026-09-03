@@ -16,4 +16,13 @@ public record CustomerBillLine(
     BigDecimal hourlyRate,
     BigDecimal lineTotal,
     String note) {
+
+    // JavaBean-style getters so Jakarta Pages EL can render these records in the JSP views.
+    public LocalDate getDateLogged() { return dateLogged; }
+    public String getUserName() { return userName; }
+    public String getCategoryName() { return categoryName; }
+    public BigDecimal getHours() { return hours; }
+    public BigDecimal getHourlyRate() { return hourlyRate; }
+    public BigDecimal getLineTotal() { return lineTotal; }
+    public String getNote() { return note; }
 }

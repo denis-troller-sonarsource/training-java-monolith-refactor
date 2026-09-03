@@ -13,4 +13,11 @@ public record CustomerBillReport(
     List<CustomerBillLine> lines,
     BigDecimal totalHours,
     BigDecimal totalAmount) {
+
+    // JavaBean-style getters so Jakarta Pages EL can render these records in the JSP views.
+    public String getCustomerName() { return customerName; }
+    public String getCustomerEmail() { return customerEmail; }
+    public List<CustomerBillLine> getLines() { return lines; }
+    public BigDecimal getTotalHours() { return totalHours; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
 }

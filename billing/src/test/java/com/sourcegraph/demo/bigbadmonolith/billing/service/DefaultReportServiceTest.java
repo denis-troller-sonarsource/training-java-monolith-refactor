@@ -6,17 +6,24 @@ import com.sourcegraph.demo.bigbadmonolith.billing.api.MonthlySummaryRow;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.ReportService;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.RevenueByCategoryRow;
 import com.sourcegraph.demo.bigbadmonolith.billing.api.RevenueByCustomerRow;
+import com.sourcegraph.demo.bigbadmonolith.billing.api.UserRevenueRow;
+import com.sourcegraph.demo.bigbadmonolith.billing.repository.JdbcReportRepository;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
-import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
+import com.sourcegraph.demo.bigbadmonolith.catalog.repository.JdbcBillingCategoryRepository;
+import com.sourcegraph.demo.bigbadmonolith.catalog.service.DefaultBillingCategoryService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
-import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
+import com.sourcegraph.demo.bigbadmonolith.customers.repository.JdbcCustomerRepository;
+import com.sourcegraph.demo.bigbadmonolith.customers.service.DefaultCustomerService;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
-import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.repository.JdbcBillableHourRepository;
+import com.sourcegraph.demo.bigbadmonolith.timesheet.service.DefaultBillableHourService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
-import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
+import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
+import com.sourcegraph.demo.bigbadmonolith.users.repository.JdbcUserRepository;
+import com.sourcegraph.demo.bigbadmonolith.users.service.DefaultUserService;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +52,7 @@ class DefaultReportServiceTest {
 
     private BillingCategoryService categoryService;
     private BillableHourService billableHourService;
+    private UserService userService;
 
     private Long customerId;
     private Long userId;
@@ -53,14 +61,15 @@ class DefaultReportServiceTest {
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        service = new DefaultReportService();
+        service = new DefaultReportService(new JdbcReportRepository());
 
-        categoryService = Catalog.service();
-        billableHourService = Timesheet.service();
+        categoryService = new DefaultBillingCategoryService(new JdbcBillingCategoryRepository());
+        billableHourService = new DefaultBillableHourService(new JdbcBillableHourRepository());
+        userService = new DefaultUserService(new JdbcUserRepository());
 
-        Customer customer = Customers.service()
+        Customer customer = new DefaultCustomerService(new JdbcCustomerRepository())
             .createCustomer(new Customer("Acme Corp", "billing@acme.test", "1 Road"));
-        User user = Users.service().createUser(new User("user@example.com", "Sample User"));
+        User user = userService.createUser(new User("user@example.com", "Sample User"));
         BillingCategory category = categoryService
             .createCategory(new BillingCategory("Development", "Dev work", new BigDecimal("100.00")));
 
@@ -219,6 +228,61 @@ class DefaultReportServiceTest {
         RevenueByCategoryRow idleRow = rows.stream()
             .filter(r -> r.categoryName().equals("Idle")).findFirst().orElseThrow();
         assertThat(idleRow.hourlyRate()).isEqualByComparingTo(new BigDecimal("50.00"));
+        assertThat(idleRow.totalHours()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(idleRow.totalRevenue()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    // ---- totalRevenue (dashboard) -----------------------------------------------------------
+
+    @Test
+    void totalRevenueSumsHoursTimesRateAcrossAllHours() {
+        BillingCategory consulting = categoryService
+            .createCategory(new BillingCategory("Consulting", "Advisory", new BigDecimal("200.00")));
+        seedHour(new BigDecimal("2.00"), categoryId, LocalDate.of(2024, 1, 5));
+        seedHour(new BigDecimal("3.00"), consulting.getId(), LocalDate.of(2024, 1, 6));
+
+        // 2.00*100 + 3.00*200 = 800.00
+        assertThat(service.totalRevenue()).isEqualByComparingTo(new BigDecimal("800.00"));
+    }
+
+    @Test
+    void totalRevenueIsZeroWhenNoHoursLogged() {
+        assertThat(service.totalRevenue()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    // ---- revenueByUser ----------------------------------------------------------------------
+
+    @Test
+    void revenueByUserAggregatesHoursAndRevenuePerUser() {
+        BillingCategory consulting = categoryService
+            .createCategory(new BillingCategory("Consulting", "Advisory", new BigDecimal("200.00")));
+        seedHour(new BigDecimal("2.00"), categoryId, LocalDate.of(2024, 1, 5));
+        seedHour(new BigDecimal("1.00"), consulting.getId(), LocalDate.of(2024, 1, 6));
+
+        List<UserRevenueRow> rows = service.revenueByUser();
+
+        UserRevenueRow row = rows.stream()
+            .filter(r -> r.userId().equals(userId)).findFirst().orElseThrow();
+        assertThat(row.userName()).isEqualTo("Sample User");
+        assertThat(row.userEmail()).isEqualTo("user@example.com");
+        assertThat(row.totalHours()).isEqualByComparingTo(new BigDecimal("3.00"));
+        // 2.00*100 + 1.00*200 = 400.00
+        assertThat(row.totalRevenue()).isEqualByComparingTo(new BigDecimal("400.00"));
+    }
+
+    @Test
+    void revenueByUserReturnsZerosForUserWithNoHours() {
+        // A second user with no billable hours: the LEFT JOIN keeps them with COALESCE(0) aggregates.
+        User idle = userService.createUser(new User("idle@example.com", "Idle User"));
+        seedHour(new BigDecimal("2.00"), categoryId, LocalDate.of(2024, 1, 5));
+
+        List<UserRevenueRow> rows = service.revenueByUser();
+
+        assertThat(rows).extracting(UserRevenueRow::userName)
+            .containsExactlyInAnyOrder("Sample User", "Idle User");
+
+        UserRevenueRow idleRow = rows.stream()
+            .filter(r -> r.userId().equals(idle.getId())).findFirst().orElseThrow();
         assertThat(idleRow.totalHours()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(idleRow.totalRevenue()).isEqualByComparingTo(BigDecimal.ZERO);
     }
