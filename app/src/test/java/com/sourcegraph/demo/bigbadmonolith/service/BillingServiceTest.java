@@ -103,7 +103,7 @@ class BillingServiceTest {
     }
 
     @Test
-    void generateCustomerBillReturnsExpectedKeys() throws SQLException {
+    void generateCustomerBillReturnsExpectedKeys() {
         seedHour(new BigDecimal("2.00"), categoryId, new LocalDate(2024, 1, 15));
 
         Map<String, Object> bill = service.generateCustomerBill(customerId);
@@ -113,7 +113,7 @@ class BillingServiceTest {
     }
 
     @Test
-    void generateCustomerBillSumsHoursAndAmount() throws SQLException {
+    void generateCustomerBillSumsHoursAndAmount() {
         seedHour(new BigDecimal("2.00"), categoryId, new LocalDate(2024, 1, 15));
         seedHour(new BigDecimal("3.50"), categoryId, new LocalDate(2024, 1, 16));
 
@@ -153,7 +153,7 @@ class BillingServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void generateMonthlyReportIncludesOnlyInMonthRows() throws SQLException {
+    void generateMonthlyReportIncludesOnlyInMonthRows() {
         BillingCategory consulting = categoryService
             .createCategory(new BillingCategory("Consulting", "Advisory", new BigDecimal("200.00")));
         // In target month 2024-03.

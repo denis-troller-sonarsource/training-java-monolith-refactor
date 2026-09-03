@@ -12,9 +12,8 @@ public class BillableHour {
     private Long categoryId;
     private BigDecimal hours;
     private String note;
-    // TODO(phase4): migrate Joda -> java.time
+    // NOTE: still Joda-Time; migrated to java.time in Phase 4 with BillingService/DateTimeUtils.
     private LocalDate dateLogged;
-    // TODO(phase4): migrate Joda -> java.time
     private DateTime createdAt;
 
     public BillableHour() {}

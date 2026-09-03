@@ -47,7 +47,7 @@ class DataInitializationServiceTest {
     }
 
     @Test
-    void initializeSampleDataSeedsExpectedCounts() throws SQLException {
+    void initializeSampleDataSeedsExpectedCounts() {
         service.initializeSampleData();
 
         assertThat(userService.listUsers()).hasSize(2);
@@ -57,7 +57,7 @@ class DataInitializationServiceTest {
     }
 
     @Test
-    void initializeSampleDataIsIdempotent() throws SQLException {
+    void initializeSampleDataIsIdempotent() {
         service.initializeSampleData();
         service.initializeSampleData();
 
