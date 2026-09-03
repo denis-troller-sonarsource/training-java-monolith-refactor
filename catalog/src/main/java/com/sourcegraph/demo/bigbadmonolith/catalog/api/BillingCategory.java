@@ -1,4 +1,4 @@
-package com.sourcegraph.demo.bigbadmonolith.entity;
+package com.sourcegraph.demo.bigbadmonolith.catalog.api;
 
 import java.math.BigDecimal;
 

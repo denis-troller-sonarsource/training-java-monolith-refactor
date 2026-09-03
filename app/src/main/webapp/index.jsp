@@ -1,6 +1,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.dao.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.entity.*" %>
+<%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.customers.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.users.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -8,7 +9,7 @@
     CustomerService customerService = Customers.service();
     UserService userService = Users.service();
     BillableHourDAO billableHourDAO = new BillableHourDAO();
-    BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
+    BillingCategoryService categoryService = Catalog.service();
     
     int totalCustomers = 0;
     int totalUsers = 0;
@@ -22,7 +23,7 @@
         totalUsers = users.size();
         
         List<BillableHour> billableHours = billableHourDAO.findAll();
-        List<BillingCategory> categories = categoryDAO.findAll();
+        List<BillingCategory> categories = categoryService.listCategories();
         
         Map<Long, BillingCategory> categoryMap = new HashMap<>();
         for (BillingCategory category : categories) {

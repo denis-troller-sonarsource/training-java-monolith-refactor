@@ -1,12 +1,13 @@
 package com.sourcegraph.demo.bigbadmonolith.service;
 
 import com.sourcegraph.demo.bigbadmonolith.dao.BillableHourDAO;
-import com.sourcegraph.demo.bigbadmonolith.dao.BillingCategoryDAO;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategory;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.BillingCategoryService;
+import com.sourcegraph.demo.bigbadmonolith.catalog.api.Catalog;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customer;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.CustomerService;
 import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.entity.BillableHour;
-import com.sourcegraph.demo.bigbadmonolith.entity.BillingCategory;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
@@ -20,7 +21,7 @@ public class DataInitializationService {
 
     private UserService userService = Users.service();
     private CustomerService customerService = Customers.service();
-    private BillingCategoryDAO categoryDAO = new BillingCategoryDAO();
+    private BillingCategoryService categoryService = Catalog.service();
     private BillableHourDAO billableHourDAO = new BillableHourDAO();
 
     public void initializeSampleData() throws SQLException {
@@ -39,9 +40,9 @@ public class DataInitializationService {
         Customer customer3 = customerService.createCustomer(new Customer("MegaCorp Ltd", "accounts@megacorp.com", "789 Enterprise Blvd"));
         
         // Create billing categories
-        BillingCategory devCategory = categoryDAO.save(new BillingCategory("Development", "Software development work", new BigDecimal("150.00")));
-        BillingCategory consultingCategory = categoryDAO.save(new BillingCategory("Consulting", "Business consulting services", new BigDecimal("200.00")));
-        BillingCategory supportCategory = categoryDAO.save(new BillingCategory("Support", "Technical support and maintenance", new BigDecimal("100.00")));
+        BillingCategory devCategory = categoryService.createCategory(new BillingCategory("Development", "Software development work", new BigDecimal("150.00")));
+        BillingCategory consultingCategory = categoryService.createCategory(new BillingCategory("Consulting", "Business consulting services", new BigDecimal("200.00")));
+        BillingCategory supportCategory = categoryService.createCategory(new BillingCategory("Support", "Technical support and maintenance", new BigDecimal("100.00")));
         
         // Create sample billable hours
         billableHourDAO.save(new BillableHour(customer1.getId(), user1.getId(), devCategory.getId(), 
