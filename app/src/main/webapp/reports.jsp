@@ -2,7 +2,6 @@
 <%@ page import="java.text.DecimalFormat" %>
 <%@ page import="java.math.BigDecimal" %>
 <%@ page import="java.sql.*" %>
-<%@ page import="org.joda.time.LocalDate" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.catalog.api.*" %>
 <%@ page import="com.sourcegraph.demo.bigbadmonolith.customers.api.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>

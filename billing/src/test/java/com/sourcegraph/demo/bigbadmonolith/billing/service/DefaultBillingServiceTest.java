@@ -14,7 +14,8 @@ import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
 import com.sourcegraph.demo.bigbadmonolith.testsupport.InMemoryDatabase;
-import org.joda.time.LocalDate;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,7 +107,7 @@ class DefaultBillingServiceTest {
 
     @Test
     void generateCustomerBillReturnsExpectedKeys() {
-        seedHour(new BigDecimal("2.00"), categoryId, new LocalDate(2024, 1, 15));
+        seedHour(new BigDecimal("2.00"), categoryId, LocalDate.of(2024, 1, 15));
 
         Map<String, Object> bill = service.generateCustomerBill(customerId);
 
@@ -116,8 +117,8 @@ class DefaultBillingServiceTest {
 
     @Test
     void generateCustomerBillSumsHoursAndAmount() {
-        seedHour(new BigDecimal("2.00"), categoryId, new LocalDate(2024, 1, 15));
-        seedHour(new BigDecimal("3.50"), categoryId, new LocalDate(2024, 1, 16));
+        seedHour(new BigDecimal("2.00"), categoryId, LocalDate.of(2024, 1, 15));
+        seedHour(new BigDecimal("3.50"), categoryId, LocalDate.of(2024, 1, 16));
 
         Map<String, Object> bill = service.generateCustomerBill(customerId);
 
@@ -132,9 +133,9 @@ class DefaultBillingServiceTest {
     void generateCustomerBillSkipsHoursWithNullCategory() throws SQLException {
         // Drop the category FK first so a row pointing at a non-existent category can be inserted.
         removeCategoryForeignKey();
-        BillableHour counted = seedHour(new BigDecimal("2.00"), categoryId, new LocalDate(2024, 1, 15));
+        BillableHour counted = seedHour(new BigDecimal("2.00"), categoryId, LocalDate.of(2024, 1, 15));
         // This second hour references a category id that will not resolve (lookup returns null).
-        seedHour(new BigDecimal("9.00"), 9999L, new LocalDate(2024, 1, 16));
+        seedHour(new BigDecimal("9.00"), 9999L, LocalDate.of(2024, 1, 16));
 
         Map<String, Object> bill = service.generateCustomerBill(customerId);
 
@@ -161,11 +162,11 @@ class DefaultBillingServiceTest {
         BillingCategory consulting = categoryService
             .createCategory(new BillingCategory("Consulting", "Advisory", new BigDecimal("200.00")));
         // In target month 2024-03.
-        seedHour(new BigDecimal("2.00"), categoryId, new LocalDate(2024, 3, 5));
-        seedHour(new BigDecimal("1.00"), consulting.getId(), new LocalDate(2024, 3, 20));
+        seedHour(new BigDecimal("2.00"), categoryId, LocalDate.of(2024, 3, 5));
+        seedHour(new BigDecimal("1.00"), consulting.getId(), LocalDate.of(2024, 3, 20));
         // Out of target month.
-        seedHour(new BigDecimal("10.00"), categoryId, new LocalDate(2024, 2, 5));
-        seedHour(new BigDecimal("10.00"), categoryId, new LocalDate(2023, 3, 5));
+        seedHour(new BigDecimal("10.00"), categoryId, LocalDate.of(2024, 2, 5));
+        seedHour(new BigDecimal("10.00"), categoryId, LocalDate.of(2023, 3, 5));
 
         Map<String, Object> report = service.generateMonthlyReport(2024, 3);
 
@@ -182,7 +183,7 @@ class DefaultBillingServiceTest {
     @Test
     void validateBillableHourReturnsEmptyForValidWeekdayEntry() {
         BillableHour hour = new BillableHour(
-            customerId, userId, categoryId, new BigDecimal("5.00"), "note", new LocalDate(2024, 1, 15));
+            customerId, userId, categoryId, new BigDecimal("5.00"), "note", LocalDate.of(2024, 1, 15));
 
         String result = service.validateBillableHour(hour);
 
@@ -192,7 +193,7 @@ class DefaultBillingServiceTest {
     @Test
     void validateBillableHourReportsInvalidCustomer() {
         BillableHour hour = new BillableHour(
-            9999L, userId, categoryId, new BigDecimal("5.00"), "note", new LocalDate(2024, 1, 15));
+            9999L, userId, categoryId, new BigDecimal("5.00"), "note", LocalDate.of(2024, 1, 15));
 
         String result = service.validateBillableHour(hour);
 
@@ -202,7 +203,7 @@ class DefaultBillingServiceTest {
     @Test
     void validateBillableHourReportsInvalidCategory() {
         BillableHour hour = new BillableHour(
-            customerId, userId, 9999L, new BigDecimal("5.00"), "note", new LocalDate(2024, 1, 15));
+            customerId, userId, 9999L, new BigDecimal("5.00"), "note", LocalDate.of(2024, 1, 15));
 
         String result = service.validateBillableHour(hour);
 
@@ -212,7 +213,7 @@ class DefaultBillingServiceTest {
     @Test
     void validateBillableHourReportsNonPositiveHours() {
         BillableHour hour = new BillableHour(
-            customerId, userId, categoryId, BigDecimal.ZERO, "note", new LocalDate(2024, 1, 15));
+            customerId, userId, categoryId, BigDecimal.ZERO, "note", LocalDate.of(2024, 1, 15));
 
         String result = service.validateBillableHour(hour);
 
@@ -231,7 +232,7 @@ class DefaultBillingServiceTest {
 
     @Test
     void validateBillableHourReportsFutureDate() {
-        LocalDate future = LocalDate.now().plusDays(5);
+        LocalDate future = LocalDate.now(ZoneId.systemDefault()).plusDays(5);
         BillableHour hour = new BillableHour(
             customerId, userId, categoryId, new BigDecimal("5.00"), "note", future);
 
@@ -244,7 +245,7 @@ class DefaultBillingServiceTest {
     void validateBillableHourWarnsOnWeekend() {
         // 2024-01-06 is a Saturday and is in the past.
         BillableHour hour = new BillableHour(
-            customerId, userId, categoryId, new BigDecimal("5.00"), "note", new LocalDate(2024, 1, 6));
+            customerId, userId, categoryId, new BigDecimal("5.00"), "note", LocalDate.of(2024, 1, 6));
 
         String result = service.validateBillableHour(hour);
 

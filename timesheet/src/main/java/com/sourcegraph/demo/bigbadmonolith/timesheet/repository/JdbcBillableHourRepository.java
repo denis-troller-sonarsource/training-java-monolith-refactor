@@ -7,13 +7,11 @@ import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -41,8 +39,8 @@ public class JdbcBillableHourRepository implements BillableHourRepository {
             stmt.setLong(3, billableHour.getCategoryId());
             stmt.setBigDecimal(4, billableHour.getHours());
             stmt.setString(5, billableHour.getNote());
-            stmt.setDate(6, new Date(billableHour.getDateLogged().toDateTimeAtStartOfDay().getMillis()));
-            stmt.setTimestamp(7, new Timestamp((billableHour.getCreatedAt() != null ? billableHour.getCreatedAt() : DateTime.now()).getMillis()));
+            stmt.setDate(6, Date.valueOf(billableHour.getDateLogged()));
+            stmt.setTimestamp(7, Timestamp.from(billableHour.getCreatedAt() != null ? billableHour.getCreatedAt() : Instant.now()));
         });
         if (id != null) {
             billableHour.setId(id);
@@ -90,7 +88,7 @@ public class JdbcBillableHourRepository implements BillableHourRepository {
             stmt.setLong(3, billableHour.getCategoryId());
             stmt.setBigDecimal(4, billableHour.getHours());
             stmt.setString(5, billableHour.getNote());
-            stmt.setDate(6, new Date(billableHour.getDateLogged().toDateTimeAtStartOfDay().getMillis()));
+            stmt.setDate(6, Date.valueOf(billableHour.getDateLogged()));
             stmt.setLong(7, billableHour.getId());
         });
     }
@@ -110,8 +108,8 @@ public class JdbcBillableHourRepository implements BillableHourRepository {
             rs.getLong(COL_CATEGORY_ID),
             rs.getBigDecimal(COL_HOURS),
             rs.getString(COL_NOTE),
-            LocalDate.fromDateFields(rs.getDate(COL_DATE_LOGGED)),
-            new DateTime(rs.getTimestamp(COL_CREATED_AT))
+            rs.getDate(COL_DATE_LOGGED).toLocalDate(),
+            rs.getTimestamp(COL_CREATED_AT).toInstant()
         );
     }
 }
