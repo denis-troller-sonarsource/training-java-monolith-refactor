@@ -1,5 +1,7 @@
-package com.sourcegraph.demo.bigbadmonolith.service;
+package com.sourcegraph.demo.bigbadmonolith.billing.service;
 
+import com.sourcegraph.demo.bigbadmonolith.billing.api.BillingService;
+import com.sourcegraph.demo.bigbadmonolith.billing.api.CustomerNotFoundException;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.Timesheet;
@@ -12,21 +14,40 @@ import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.common.DateTimeUtils;
 import org.joda.time.LocalDate;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BillingService {
+@ApplicationScoped
+public class DefaultBillingService implements BillingService {
 
-    private BillableHourService billableHourService = Timesheet.service();
-    private BillingCategoryService categoryService = Catalog.service();
-    private CustomerService customerService = Customers.service();
+    private final BillableHourService billableHourService;
+    private final BillingCategoryService categoryService;
+    private final CustomerService customerService;
 
+    @Inject
+    public DefaultBillingService(BillableHourService billableHourService,
+                                 BillingCategoryService categoryService,
+                                 CustomerService customerService) {
+        this.billableHourService = billableHourService;
+        this.categoryService = categoryService;
+        this.customerService = customerService;
+    }
+
+    /** No-arg constructor for non-CDI callers via {@link java.util.ServiceLoader}. */
+    public DefaultBillingService() {
+        this(Timesheet.service(), Catalog.service(), Customers.service());
+    }
+
+    @Override
     public Map<String, Object> generateCustomerBill(Long customerId) {
         Customer customer = customerService.getCustomer(customerId);
         if (customer == null) {
-            throw new RuntimeException("Customer not found");
+            throw new CustomerNotFoundException(customerId);
         }
 
         List<BillableHour> hours = billableHourService.listHoursForCustomer(customerId);
@@ -53,6 +74,7 @@ public class BillingService {
         return bill;
     }
     
+    @Override
     public Map<String, Object> generateMonthlyReport(int year, int month) {
         List<BillableHour> allHours = billableHourService.listHours();
         
@@ -88,6 +110,7 @@ public class BillingService {
     }
     
 
+    @Override
     public String validateBillableHour(BillableHour hour) {
         String validationErrors = "";
         
