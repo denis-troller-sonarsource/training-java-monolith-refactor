@@ -12,17 +12,41 @@ import com.sourcegraph.demo.bigbadmonolith.customers.api.Customers;
 import com.sourcegraph.demo.bigbadmonolith.users.api.User;
 import com.sourcegraph.demo.bigbadmonolith.users.api.UserService;
 import com.sourcegraph.demo.bigbadmonolith.users.api.Users;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 
+@ApplicationScoped
 public class DataInitializationService {
 
-    private UserService userService = Users.service();
-    private CustomerService customerService = Customers.service();
-    private BillingCategoryService categoryService = Catalog.service();
-    private BillableHourService billableHourService = Timesheet.service();
+    private final UserService userService;
+    private final CustomerService customerService;
+    private final BillingCategoryService categoryService;
+    private final BillableHourService billableHourService;
+
+    @Inject
+    public DataInitializationService(UserService userService,
+                                     CustomerService customerService,
+                                     BillingCategoryService categoryService,
+                                     BillableHourService billableHourService) {
+        this.userService = userService;
+        this.customerService = customerService;
+        this.categoryService = categoryService;
+        this.billableHourService = billableHourService;
+    }
+
+    /**
+     * No-arg constructor for non-CDI callers (the {@link
+     * com.sourcegraph.demo.bigbadmonolith.StartupListener} still {@code new}s this). Self-wires
+     * each context service via its {@link java.util.ServiceLoader} factory. Retired once the
+     * bootstrap is fully CDI-managed.
+     */
+    public DataInitializationService() {
+        this(Users.service(), Customers.service(), Catalog.service(), Timesheet.service());
+    }
 
     public void initializeSampleData() {
         List<User> existingUsers = userService.listUsers();
