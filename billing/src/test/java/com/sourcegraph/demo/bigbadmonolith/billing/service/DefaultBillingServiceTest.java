@@ -1,5 +1,7 @@
-package com.sourcegraph.demo.bigbadmonolith.service;
+package com.sourcegraph.demo.bigbadmonolith.billing.service;
 
+import com.sourcegraph.demo.bigbadmonolith.billing.api.BillingService;
+import com.sourcegraph.demo.bigbadmonolith.billing.api.CustomerNotFoundException;
 import com.sourcegraph.demo.bigbadmonolith.common.LibertyConnectionManager;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHour;
 import com.sourcegraph.demo.bigbadmonolith.timesheet.api.BillableHourService;
@@ -32,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * The service instantiates its own DAOs, so tests seed data through the same DAOs. These lock in
  * the service's current billing, reporting, and validation behavior before the refactoring begins.
  */
-class BillingServiceTest {
+class DefaultBillingServiceTest {
 
     private InMemoryDatabase db;
     private BillingService service;
@@ -47,7 +49,7 @@ class BillingServiceTest {
     @BeforeEach
     void setUp() throws SQLException {
         db = InMemoryDatabase.createAndInstall();
-        service = new BillingService();
+        service = new DefaultBillingService();
 
         categoryService = Catalog.service();
         billableHourService = Timesheet.service();
@@ -147,8 +149,10 @@ class BillingServiceTest {
 
     @Test
     void generateCustomerBillThrowsWhenCustomerNotFound() {
+        // Behavior preserved (still an unchecked exception); the type is now the specific
+        // CustomerNotFoundException instead of a bare RuntimeException.
         assertThatThrownBy(() -> service.generateCustomerBill(9999L))
-            .isInstanceOf(RuntimeException.class);
+            .isInstanceOf(CustomerNotFoundException.class);
     }
 
     @Test
